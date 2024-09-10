@@ -4,9 +4,12 @@ TODO:
     - Add units to variables description
     - Test how transformed coordinates look like?
     - Check 0-order paraxial with plotting
+    - Add next order paraxial Gaussians (???)
+    - Rewrite the main computation with numexpr
 '''
 
 import numpy as np
+import numexpr as ne
 from scipy.constants import pi, c, epsilon_0
 from scipy.spatial.transform import Rotation
 
@@ -68,11 +71,16 @@ class ParaxialGaussianAnalytic(object):
         self.transform_coordinates()
 
         # Define variables not depending on time step
-        self.w = self.w0 * np.sqrt(1 + (self.z/self.zR)**2)
-        self.r2 = self.x**2 + self.y**2
-        self.R = self.z + self.zR**2/self.z
-        self.phase_no_t = self.phase0 - self.k*self.r2/(2*self.R) + np.arctan(self.z/self.zR)
-        self.E = self.E0 * self.w0/self.w * np.exp(-self.r2/self.w**2)
+        # self.w = self.w0 * np.sqrt(1 + (self.z/self.zR)**2)
+        # self.r2 = self.x**2 + self.y**2
+        # self.R = self.z + self.zR**2/self.z
+        # self.phase_no_t = self.phase0 - self.k*self.r2/(2*self.R) + np.arctan(self.z/self.zR)
+        # self.E = self.E0 * self.w0/self.w * np.exp(-self.r2/self.w**2)
+        self.w = "w0 * sqrt(1 + (z/zR)**2)"
+        self.r2 = "x**2 + y**2"
+        self.R = "z + zR**2/z"
+        self.phase_no_t = "phase0 - k*r2/(2*R) + arctan(z/zR)"
+        self.E = "E0 * w0/w * exp(-r2/w**2)"
 
     def get_rotation(self):
         # Define rotation transforming (0,0,1) -> (kx,ky,kz) for vectors
@@ -85,21 +93,31 @@ class ParaxialGaussianAnalytic(object):
     def transform_coordinates(self):
         axes = 'xyz'
         for i,ax in enumerate(axes):
-            mx, my, mz = self.rotation_bwd_m[i]
-            self.__dict__[ax] = mx*(self.x_-self.x0) + my*(self.y_-self.y0) + mz*(self.z_-self.z0)
+            self.mx, self.my, self.mz = self.rotation_bwd_m[i]
+            self.__dict__[ax] = ne.evaluate("mx*(x_-x0) + my*(y_-y0) + mz*(z_-z0)",
+                                            local_dict=self.__dict__)
     
-    def calculate_field(self, t):
-        psi_plane = self.omega*(t-self.t0) - self.k*self.z
-        phase = self.phase_no_t + psi_plane
-        Ex = self.E * np.exp(-(psi_plane/self.omega)**2/(self.tau/2)**2) * np.cos(phase)
+    def calculate_field(self, t, E_out=None, B_out=None):
+        self.psi_plane = "omega*(t-t0) - k*z"
+        self.phase = "phase_no_t + psi_plane"
+        Ex = ne.evaluate("E * exp(-(psi_plane/omega)**2/(tau/2)**2) * cos(phase)",
+                         local_dict=self.__dict__)
+        Ey, Ez = 0., 0.
+        By = Ex
+        Bx, Bz = 0., 0.
 
         # Transform to the original coordinate frame
-        E = (Ex, 0., 0.)
-        E_out = (0., 0., 0.)
-        for i in range(3):
-            mx, my, mz = self.rotation_m[i]
-            E_out[i] = mx*E[0] + my*E[1] * mz*E[2]
-        return E_out
+        # E = (Ex, Ey, Ez)
+        # E_out = (0., 0., 0.)
+        if E_out:
+            for i,Ei in enumerate(E_out):
+                mx, my, mz = self.rotation_m[i]
+                ne.evaluate('mx*Ex + my*Ey + mz*Ez', out=Ei)
+
+        if B_out:
+            for i,Bi in enumerate(B_out):
+                mx, my, mz = self.rotation_m[i]
+                ne.evaluate('mx*Bx + my*By + mz*Bz', out=Bi)
         
 
 
