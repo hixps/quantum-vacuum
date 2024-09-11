@@ -54,8 +54,8 @@ class ParaxialGaussianAnalytic(object):
                 self.__dict__[key] = val
 
         # Define grid variables
-        self.grid = grid
-        self.x_, self.y_, self.z_ = grid
+        self.grid = [ax.flatten() for ax in grid]
+        self.x_, self.y_, self.z_ = np.meshgrid(*grid, sparse=True)
         self.grid_shape = [dim.size for dim in grid]
 
         # Define additional field variables
@@ -76,11 +76,11 @@ class ParaxialGaussianAnalytic(object):
         # self.R = self.z + self.zR**2/self.z
         # self.phase_no_t = self.phase0 - self.k*self.r2/(2*self.R) + np.arctan(self.z/self.zR)
         # self.E = self.E0 * self.w0/self.w * np.exp(-self.r2/self.w**2)
-        self.w = "w0 * sqrt(1 + (z/zR)**2)"
-        self.r2 = "x**2 + y**2"
-        self.R = "z + zR**2/z"
-        self.phase_no_t = "phase0 - k*r2/(2*R) + arctan(z/zR)"
-        self.E = "E0 * w0/w * exp(-r2/w**2)"
+        self.w = ne.evaluate("w0 * sqrt(1 + (z/zR)**2)", global_dict=self.__dict__)
+        self.r2 = ne.evaluate("x**2 + y**2", global_dict=self.__dict__)
+        self.R = ne.evaluate("z + zR**2/z", global_dict=self.__dict__)
+        self.phase_no_t = ne.evaluate("phase0 - k*r2/(2*R) + arctan(z/zR)", global_dict=self.__dict__)
+        self.E = ne.evaluate("E0 * w0/w * exp(-r2/w**2)", global_dict=self.__dict__)
 
     def get_rotation(self):
         # Define rotation transforming (0,0,1) -> (kx,ky,kz) for vectors
@@ -98,10 +98,10 @@ class ParaxialGaussianAnalytic(object):
                                             local_dict=self.__dict__)
     
     def calculate_field(self, t, E_out=None, B_out=None):
-        self.psi_plane = "omega*(t-t0) - k*z"
-        self.phase = "phase_no_t + psi_plane"
+        self.psi_plane = ne.evaluate("omega*(t-t0) - k*z", global_dict=self.__dict__)
+        self.phase = ne.evaluate("phase_no_t + psi_plane", global_dict=self.__dict__)
         Ex = ne.evaluate("E * exp(-(psi_plane/omega)**2/(tau/2)**2) * cos(phase)",
-                         local_dict=self.__dict__)
+                         global_dict=self.__dict__)
         Ey, Ez = 0., 0.
         By = Ex
         Bx, Bz = 0., 0.
