@@ -107,17 +107,15 @@ class ParaxialGaussianAnalytic(object):
         Bx, Bz = 0., 0.
 
         # Transform to the original coordinate frame
-        # E = (Ex, Ey, Ez)
-        # E_out = (0., 0., 0.)
         if E_out:
             for i,Ei in enumerate(E_out):
                 mx, my, mz = self.rotation_m[i]
-                ne.evaluate('mx*Ex + my*Ey + mz*Ez', out=Ei)
+                ne.evaluate('Ei + mx*Ex + my*Ey + mz*Ez', out=Ei)
 
         if B_out:
             for i,Bi in enumerate(B_out):
                 mx, my, mz = self.rotation_m[i]
-                ne.evaluate('mx*Bx + my*By + mz*Bz', out=Bi)
+                ne.evaluate('Bi + mx*Bx + my*By + mz*Bz', out=Bi)
         
 
 

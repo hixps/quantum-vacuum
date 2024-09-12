@@ -32,14 +32,14 @@ class VacuumEmission(object):
         self.setup_k_grid()
 
         angles = "theta phi beta".split()
-        for angle in angles:
-            self.__dict__[angle] = self.field.__dict__[angle]
+        # for angle in angles:
+        #     self.__dict__[angle] = self.field.__dict__[angle]
         
-        # Define two perpendicular polarizations
-        self.e1 = np.array([np.cos(self.phi)*np.cos(self.theta),
-                            np.sin(self.phi)*np.cos(self.theta),
-                            -np.sin(self.theta)])
-        self.e2 = np.array([-np.sin(self.phi),np.cos(self.phi),0])
+        # # Define two perpendicular polarizations
+        # self.e1 = np.array([np.cos(self.phi)*np.cos(self.theta),
+        #                     np.sin(self.phi)*np.cos(self.theta),
+        #                     -np.sin(self.theta)])
+        # self.e2 = np.array([-np.sin(self.phi),np.cos(self.phi),0])
 
         # Define symbolic expressions to evaluate later
         self.F = F = "0.5 * (Bx**2 + By**2 + Bz**2 - Ex**2 - Ey**2 - Ez**2)"
@@ -53,8 +53,8 @@ class VacuumEmission(object):
         # self.I = "cos(beta_p)*(I_11 - I_22) + sin(beta_p)*(I_12 + I_21)"
     
     def allocate_fields(self):
-        self.E_out = (np.empty(self.field.grid_shape) for _ in range(3))
-        self.B_out = (np.empty(self.field.grid_shape) for _ in range(3))
+        self.E_out = (np.zeros(self.field.grid_shape) for _ in range(3))
+        self.B_out = (np.zeros(self.field.grid_shape) for _ in range(3))
         self.Ex, self.Ey, self.Ez = self.E_out
         self.Bx, self.By, self.Bz = self.B_out
 
@@ -113,7 +113,7 @@ class VacuumEmission(object):
                                       you passed {integration_method}""")
 
     def calculate_vacuum_current(self, t_grid, integration_method="trapezoid",
-                                 filename="data.npz"):
+                                 filename="current.npz"):
         self.calculate_time_integral(t_grid, integration_method)
         self.free_resources()
         # Results should be in U1_acc and U2_acc
