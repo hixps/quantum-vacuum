@@ -17,6 +17,7 @@ import pyfftw
 
 
 BS = m_e**2 * c**2 / (hbar * e)
+eV_to_m = 1 / (0.197327*1e-6)
 
 
 class VacuumEmission(object):
@@ -147,7 +148,8 @@ class VacuumEmission(object):
         S1 = ne.evaluate("e1x*jx + e1y*jy + e1z*jz", global_dict=self.__dict__)
         S2 = ne.evaluate("e2x*jx + e2y*jy", global_dict=self.__dict__)
         S = ne.evaluate("S1.real**2 + S1.imag**2 + S2.real**2 + S2.imag**2")
-        prefactor = 1 / (2*pi)**1.5 / 45 * np.sqrt(alpha/2*self.kabs) / BS**3 * m_e**2
+        # prefactor = 1 / (2*pi)**1.5 / 45 * np.sqrt(alpha/2*self.kabs) / BS**3 * m_e**2 * c**3 / hbar**2
+        prefactor = 1 / (2*pi)**1.5 / 45 * np.sqrt(alpha/2*self.kabs) / BS**3 * (0.511*1e6*eV_to_m)**2
         Ntot = ne.evaluate("sum(prefactor**2 * S * dV)", global_dict=self.__dict__)
         return Ntot
 
