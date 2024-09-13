@@ -78,15 +78,18 @@ class VacuumEmission(object):
                         for a in self.tmp]
     
     def setup_k_grid(self):
-        self.dV = 1
+        self.dV, self.dVk = 1, 1
         for i,ax in enumerate('xyz'):
             grid = self.field.grid[i]
             self.__dict__[f'd{ax}'] = step = grid[1] - grid[0]
             self.dV *= step
             self.__dict__[f'k{ax}'] = 2*pi*np.fft.fftfreq(grid.size, step)
+            kstep = (self.__dict__[f'k{ax}'][1] - self.__dict__[f'k{ax}'][0]) / (2*pi)
+            self.dVk *= kstep
         self.kmeshgrid = np.meshgrid(self.kx, self.ky, self.kz, indexing='ij', sparse=True)
         k_dict = {f'k{ax}': self.kmeshgrid[i] for i,ax in enumerate('xyz')}
         kx, ky, kz = k_dict["kx"], k_dict["ky"], k_dict["kz"]
+        # self.dVk = (kx[1]-kx[0]) * (ky[1]-ky[0]) * (kz[1]-kz[0])
         self.kabs = kabs = ne.evaluate("sqrt(kx**2 + ky**2 + kz**2)", local_dict=k_dict)
         # self.kabs = np.nan_to_num(self.kabs)
         kperp = ne.evaluate("sqrt(kx**2 + ky**2)", local_dict=k_dict)
@@ -122,8 +125,7 @@ class VacuumEmission(object):
         if integration_method == "trapezoid":
             end_pts = (0,len(t_grid)-1)
             for i,t in enumerate(t_grid):
-                if i in end_pts:
-                    weight = 0.5
+                weight = 0.5 if i in end_pts else 1
                 self.calculate_one_time_step(t, weight=weight)
         else:
             raise NotImplementedError(f"""integration_method should be one of ['trapezoid'] but 
@@ -148,9 +150,11 @@ class VacuumEmission(object):
         S1 = ne.evaluate("e1x*jx + e1y*jy + e1z*jz", global_dict=self.__dict__)
         S2 = ne.evaluate("e2x*jx + e2y*jy", global_dict=self.__dict__)
         S = ne.evaluate("S1.real**2 + S1.imag**2 + S2.real**2 + S2.imag**2")
-        # prefactor = 1 / (2*pi)**1.5 / 45 * np.sqrt(alpha/2*self.kabs) / BS**3 * m_e**2 * c**3 / hbar**2
-        prefactor = 1 / (2*pi)**1.5 / 45 * np.sqrt(alpha/2*self.kabs) / BS**3 * (0.511*1e6*eV_to_m)**2
-        Ntot = ne.evaluate("sum(prefactor**2 * S * dV)", global_dict=self.__dict__)
+        prefactor = 1 / (2*pi)**1.5 / 45 * np.sqrt(alpha/2*self.kabs) / BS**3 * m_e**2 * c**2 / hbar**2
+        # prefactor = 1 / (2*pi)**1.5 / 45 * np.sqrt(alpha/2*self.kabs) / BS**3 * (0.511*1e6*eV_to_m)**2
+        # qe_natural = 0.3
+        # prefactor = c**2.5 / hbar**2 * np.sqrt(1/2) * qe_natural/(4.*pi**2) * m_e**2 / 45. / BS**3 / (2*np.pi)**1.5
+        Ntot = ne.evaluate("sum(prefactor**2 * S * dVk)", global_dict=self.__dict__)
         return Ntot
 
 
