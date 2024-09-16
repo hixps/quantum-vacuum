@@ -3,6 +3,8 @@
 *.npy
 */*.npz
 */*.npy
+imgs/*
+data/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

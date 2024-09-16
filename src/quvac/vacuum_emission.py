@@ -17,7 +17,6 @@ import pyfftw
 
 
 BS = m_e**2 * c**2 / (hbar * e) # Schwinger magnetic field
-eV_to_m = 1 / (0.197327*1e-6)
 
 
 class VacuumEmission(object):
