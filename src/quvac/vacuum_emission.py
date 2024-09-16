@@ -37,14 +37,6 @@ class VacuumEmission(object):
         self.setup_k_grid()
 
         angles = "theta phi beta".split()
-        # for angle in angles:
-        #     self.__dict__[angle] = self.field.__dict__[angle]
-        
-        # # Define two perpendicular polarizations
-        # self.e1 = np.array([np.cos(self.phi)*np.cos(self.theta),
-        #                     np.sin(self.phi)*np.cos(self.theta),
-        #                     -np.sin(self.theta)])
-        # self.e2 = np.array([-np.sin(self.phi),np.cos(self.phi),0])
 
         # Define symbolic expressions to evaluate later
         self.F = F = "0.5 * (Bx**2 + By**2 + Bz**2 - Ex**2 - Ey**2 - Ez**2)"
@@ -82,22 +74,16 @@ class VacuumEmission(object):
         for i,ax in enumerate('xyz'):
             grid = self.field.grid[i]
             self.__dict__[f'd{ax}'] = step = grid[1] - grid[0]
-            # self.dV *= step
             self.__dict__[f'k{ax}'] = k_ = 2*pi*np.fft.fftfreq(grid.size, step)
-            kstep = (k_[1] - k_[0]) #/ (2*pi)
+            kstep = k_[1] - k_[0]
             self.dVk *= kstep
         N = np.prod(self.field.grid_shape)
         self.V = V = (2.*np.pi)**3 / self.dVk
         self.dV = V/N
-        print(self.dVk)
-        print(N)
-        print(self.dV)
         self.kmeshgrid = np.meshgrid(self.kx, self.ky, self.kz, indexing='ij', sparse=True)
         k_dict = {f'k{ax}': self.kmeshgrid[i] for i,ax in enumerate('xyz')}
         kx, ky, kz = k_dict["kx"], k_dict["ky"], k_dict["kz"]
-        # self.dVk = (kx[1]-kx[0]) * (ky[1]-ky[0]) * (kz[1]-kz[0])
         self.kabs = kabs = ne.evaluate("sqrt(kx**2 + ky**2 + kz**2)", local_dict=k_dict)
-        # self.kabs = np.nan_to_num(self.kabs)
         kperp = ne.evaluate("sqrt(kx**2 + ky**2)", local_dict=k_dict)
         for i,ax in enumerate('xyz'):
             self.__dict__[f'k{ax}_unit'] = self.kmeshgrid[i] / self.kabs
@@ -126,7 +112,7 @@ class VacuumEmission(object):
                 self.tmp_fftw[i].execute()
                 self.U = self.tmp[i]
                 omega = self.kabs*c
-                ne.evaluate(f"U{idx+1}_acc_{ax[i]} + U*exp(-1j*omega*t)*dt*weight*dV",
+                ne.evaluate(f"U{idx+1}_acc_{ax[i]} + U*exp(1j*omega*t)*dt*weight*dV",
                             global_dict=self.__dict__, out=self.__dict__[f"U{idx+1}_acc_{ax[i]}"])
 
     def calculate_time_integral(self, t_grid, integration_method="trapezoid"):
@@ -136,9 +122,6 @@ class VacuumEmission(object):
             for i,t in enumerate(t_grid):
                 weight = 0.5 if i in end_pts else 1.
                 self.calculate_one_time_step(t, weight=weight)
-                # print("==========================================")
-                # print(self.U1_acc_x, self.U1_acc_y, self.U1_acc_z)
-                # print(self.U2_acc_x, self.U2_acc_y, self.U2_acc_z)
         else:
             raise NotImplementedError(f"""integration_method should be one of ['trapezoid'] but 
                                       you passed {integration_method}""")
@@ -150,25 +133,14 @@ class VacuumEmission(object):
         # Results should be in U1_acc and U2_acc
         self.S1 = ne.evaluate(f"{self.I_11_expr} - {self.I_22_expr}", global_dict=self.__dict__)
         self.S2 = ne.evaluate(f"{self.I_12_expr} + {self.I_21_expr}", global_dict=self.__dict__)
-        # self.j = [0, 0, 0]
-        # self.jx = ne.evaluate("U1_acc_x + ky_unit*U2_acc_z - kz_unit*U2_acc_y",
-        #                       global_dict=self.__dict__)
-        # self.jy = ne.evaluate("U1_acc_y - kx_unit*U2_acc_z + kz_unit*U2_acc_x",
-        #                       global_dict=self.__dict__)
-        # self.jz = ne.evaluate("U1_acc_z + kx_unit*U2_acc_y - ky_unit*U2_acc_x",
-        #                       global_dict=self.__dict__)
-        # np.savez(filename, jx=self.jx, jy=self.jy, jz=self.jz)
 
     def calculate_total_signal(self):
         # Calculate total signal
-        # S1 = ne.evaluate("e1x*jx + e1y*jy + e1z*jz", global_dict=self.__dict__)
-        # S2 = ne.evaluate("e2x*jx + e2y*jy", global_dict=self.__dict__)
-        S = ne.evaluate("S1.real**2 + S1.imag**2 + S2.real**2 + S2.imag**2", global_dict=self.__dict__)
-        prefactor = 1 / (2*pi)**1.5 / 45 * np.sqrt(alpha/2*self.kabs) / BS**3 * m_e**2 * c**3 / hbar**2
-        # prefactor = 1 / (2*pi)**1.5 / 45 * np.sqrt(alpha/2*self.kabs) / BS**3 * (0.511*1e6*eV_to_m)**2
-        # qe_natural = 0.3
-        # prefactor = c**2.5 / hbar**2 * np.sqrt(1/2) * qe_natural/(4.*pi**2) * m_e**2 / 45. / BS**3 / (2*np.pi)**1.5
-        Ntot = ne.evaluate("sum(prefactor**2 * S * dVk)", global_dict=self.__dict__)
+        S = ne.evaluate("S1.real**2 + S1.imag**2 + S2.real**2 + S2.imag**2",
+                        global_dict=self.__dict__)
+        prefactor = np.sqrt(alpha*self.kabs) / (2*pi)**1.5 / 45 / BS**3 * m_e**2 * c**3 / hbar**2
+        Ntot = ne.evaluate("sum(prefactor**2 * S * dVk/(2*pi)**3)",
+                           global_dict=globals() | self.__dict__)
         return Ntot
 
 

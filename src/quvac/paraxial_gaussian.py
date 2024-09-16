@@ -18,6 +18,7 @@ from scipy.spatial.transform import Rotation
 class ParaxialGaussianAnalytic(object):
     '''
     Analytic expression for paraxial Gaussian
+    All field parameters are in SI units
 
     Field parameters
     ----------------
@@ -50,10 +51,12 @@ class ParaxialGaussianAnalytic(object):
         angles = 'theta phi beta phase0'.split()
         for key,val in field_params.items():
             if key in angles:
-                self.__dict__[key] = val * np.pi / 180
+                self.__dict__[key] = val * pi / 180
             else:
                 self.__dict__[key] = val
         if 'E0' not in field_params:
+            assert 'W' in field_params, """Field params need to have either 
+                                           W (energy) or E0 (amplitude) as key"""
             self.E0 = 1.
 
         # Define grid variables
