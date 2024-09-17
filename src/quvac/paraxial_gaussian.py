@@ -33,7 +33,7 @@ class ParaxialGaussianAnalytic(object):
     beta: float
         Polarization angle (in degrees),
         beta = 0, theta = 0 corresponds to E-vector along x-axis
-    lmbd: float
+    lam: float
         Lambda, pulse wavelength
     w0: float
         Waist size
@@ -69,9 +69,9 @@ class ParaxialGaussianAnalytic(object):
         self.x0, self.y0, self.z0 = self.focus_x
         self.t0 = self.focus_t
         self.B0 = self.E0 / c
-        self.k = 2. * pi / self.lmbd
+        self.k = 2. * pi / self.lam
         self.omega = c * self.k
-        self.zR = pi * self.w0**2 / self.lmbd
+        self.zR = pi * self.w0**2 / self.lam
 
         # Define rotation matrices and transform coordinate grid
         self.get_rotation()
@@ -96,7 +96,7 @@ class ParaxialGaussianAnalytic(object):
 
     def get_rotation(self):
         # Define rotation transforming (0,0,1) -> (kx,ky,kz) for vectors
-        self.rotation = Rotation.from_euler('zyz', (self.phi,self.theta,self.beta))
+        self.rotation = Rotation.from_euler('ZYZ', (self.phi,self.theta,self.beta))
         self.rotation_m = self.rotation.as_matrix()
         # Inverse rotation: (kx,ky,kz) -> (0,0,1)
         self.rotation_bwd = self.rotation.inv()

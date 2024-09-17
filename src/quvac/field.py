@@ -27,9 +27,9 @@ class ExternalField(object):
         match field_type:
             case "paraxial_gaussian_analytic":
                 field = ParaxialGaussianAnalytic(field_params, self.grid)
-                self.fields.append(field)
             case _:
                 raise NotImplementedError(f"We do not support '{field_type}' field type")
+        self.fields.append(field)
             
     def calculate_field(self, t, E_out=None, B_out=None):
         for field in self.fields:
