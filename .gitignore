@@ -1,3 +1,11 @@
+# Data files
+*.npz
+*.npy
+*/*.npz
+*/*.npy
+imgs/*
+data/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
