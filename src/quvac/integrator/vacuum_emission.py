@@ -4,11 +4,7 @@ It is planned to add support for two versions:
     - Calculation of total vacuum emission signal for given field configuration
     - Separation of fields into pump and probe with subsequent calculation of probe channel signal
 '''
-'''
-TODO:
-    - Need a test for two colliding paraxial gaussians
-    - Add calculation of total and polarization signal
-'''
+
 import os
 from pathlib import Path
 
@@ -130,14 +126,6 @@ class VacuumEmission(object):
                 'S1': self.S1,
                 'S2': self.S2}
         np.savez(save_path, **data)
-
-    # def calculate_total_signal(self):
-    #     # Calculate total signal
-    #     S = ne.evaluate("S1.real**2 + S1.imag**2 + S2.real**2 + S2.imag**2",
-    #                     global_dict=self.__dict__)
-    #     Ntot = ne.evaluate("sum(S * dVk/(2*pi)**3)",
-    #                        global_dict=self.__dict__ | {'pi': pi})
-    #     return Ntot
 
 
         
