@@ -12,6 +12,7 @@ from quvac.integrator.vacuum_emission import VacuumEmission
 from quvac.grid_utils import get_xyz_size, get_t_size
 from quvac.analytic_scalings import get_two_paraxial_scaling
 from quvac.grid import GridXYZ
+from quvac.postprocess import VacuumEmissionAnalyzer
 
 
 def test_two_paraxial_gaussians():
@@ -26,7 +27,7 @@ def test_two_paraxial_gaussians():
     # Define fields
     field_1 = {
         "field_type": "paraxial_gaussian_analytic",
-        "focus_x": (0.,0.,0.),
+        "focus_x": [0.,0.,0.],
         "focus_t": 0.,
         "theta": 0,
         "phi": 0,
@@ -40,7 +41,7 @@ def test_two_paraxial_gaussians():
 
     field_2 = {
         "field_type": "paraxial_gaussian_analytic",
-        "focus_x": (0.,0.,0.),
+        "focus_x": [0.,0.,0.],
         "focus_t": 0.,
         "theta": theta,
         "phi": 0,
@@ -70,11 +71,17 @@ def test_two_paraxial_gaussians():
     # Calculate analytic scalings
     N_signal_th, N_perp_th = get_two_paraxial_scaling(fields_params)
 
+    amplitude_path = 'data/test/2_paraxials_amp.npz'
     # Calculate signal numerically
     field = ExternalField(fields_params, grid)
     vacem = VacuumEmission(field, grid)
-    vacem.calculate_amplitudes(t_grid)
-    N_signal_num = vacem.calculate_total_signal()
+    vacem.calculate_amplitudes(t_grid, save_path=amplitude_path)
+
+    save_path = 'data/test/2_paraxials.npz'
+    analyzer = VacuumEmissionAnalyzer(amplitude_path, save_path)
+    angles = (0., 0., 0.)
+    analyzer.get_spectra(angles)
+    N_signal_num = analyzer.N_tot
 
     print(f"Total signal (theory): {N_signal_th:.3f}")
     print(f"Total signal (num)   : {N_signal_num:.3f}")

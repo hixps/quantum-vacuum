@@ -6,6 +6,8 @@ import numpy as np
 from scipy.constants import pi, c
 import pyfftw
 
+from quvac.grid import GridXYZ
+
 
 def get_ek(theta, phi):
     ek = np.array([np.sin(theta) * np.cos(phi),
@@ -104,3 +106,28 @@ def get_t_size(t_start, t_end, lam, grid_res=1):
     '''
     fmax = c/lam
     return int(np.ceil((t_end-t_start)*fmax*6*grid_res))
+
+
+def create_dynamic_grid(fields_params, grid_params):
+    pass
+
+
+def setup_grids(fields_params, grid_params):
+    '''
+    Create spatial and temporal grids from given sizes or
+    dynamically from field parameters (e.g., tau, w0)
+    '''
+    if grid_params['mode'] == 'dynamic':
+        grid_params = create_dynamic_grid(fields_params, grid_params)
+    
+    x0, y0, z0 = grid_params['box_xyz']
+    Nx, Ny, Nz = grid_params['Nxyz']
+    x = np.linspace(-x0/2,x0/2,Nx)
+    y = np.linspace(-y0/2,y0/2,Ny)
+    z = np.linspace(-z0/2,z0/2,Nz)
+    grid_xyz = GridXYZ((x, y, z))
+
+    t0 = grid_params["box_t"]
+    Nt = grid_params["Nt"]
+    grid_t = np.linspace(-t0/2,t0/2,Nt)
+    return grid_xyz, grid_t
