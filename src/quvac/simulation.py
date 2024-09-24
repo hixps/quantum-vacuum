@@ -1,0 +1,172 @@
+#!/usr/bin/env python3
+'''
+Here we provide a script to launch Vacuum Emission simulation,
+do postprocessing and measure performance
+'''
+
+import argparse
+import os
+from pathlib import Path
+import time
+import resource
+
+import numpy as np
+
+from quvac.field.external_field import ExternalField
+from quvac.integrator.vacuum_emission import VacuumEmission
+from quvac.grid_utils import setup_grids
+from quvac.postprocess import VacuumEmissionAnalyzer
+from quvac.utils import read_yaml, write_yaml, format_memory, format_time
+
+
+# ini yaml structure
+'''
+fields:
+    field_1:
+        ...
+    field_2:
+        ...
+    ...
+grids (one of two modes):
+    mode: 'direct'
+    box_xyz: (xbox, ybox, zbox)
+    Nxyz: (Nx, Ny, Nz)
+    box_t: tbox
+    Nt: Nt
+
+    mode: 'dynamic'
+    box_xyz: {'longitudinal': ..., 'transverse': ...}
+    res_xyz: {'longitudinal': ..., 'transverse': ...}
+    box_t: ...
+    res_t: ...
+    In 'dynamic' mode ... should be replaced by appropriate factors
+    determining how grid size and resolution would be upscaled
+    E.g., longitudinal xyz box would be upscaled with c*tau, trasverse - with w0
+performance:
+    nthreads: ...
+'''
+
+# timings structure
+performance_str = '''
+Timings:
+=================================================
+Field setup:               {:>15s}
+Amplitudes calculation:    {:>15s}
+Postprocess:               {:>15s}
+-------------------------------------------------
+Total:                     {:>15s}
+=================================================
+
+Memory (max usage):
+=================================================
+Amplitudes calculation:    {:>15s}
+Total:                     {:>15s}
+=================================================
+'''
+
+
+def print_performance_stats(perf_stats):
+    timings = perf_stats['timings']
+    timings = {
+        'field_setup': timings['field_setup']-timings['start'],
+        'amplitudes': timings['amplitudes']-timings['field_setup'],
+        'postprocess': timings['postprocess']-timings['amplitudes'],
+        'total': timings['postprocess']-timings['start']
+    }
+    timings = {k: format_time(t) for k,t in timings.items()}
+    memory = {k: format_memory(m) for k,m in perf_stats['memory'].items()}
+    perf_print = performance_str.format(timings['field_setup'],
+                                        timings['amplitudes'],
+                                        timings['postprocess'],
+                                        timings['total'],
+                                        memory['maxrss_amplitudes'],
+                                        memory['maxrss_total'])
+    print(perf_print) 
+
+
+def parse_args():
+    description = "Calculate quantum vacuum signal for given external fields"
+    argparser = argparse.ArgumentParser(description=description)
+    argparser.add_argument("--input", "-i", default=None,
+                           help="Input yaml file with field and grid params")
+    argparser.add_argument("--output", "-o", default=None,
+                           help="Path to save simulation data to")
+    return argparser.parse_args()
+
+
+def quvac_simulation(ini_file, save_path=None):
+    '''
+    Launch a single quvac simulation for given <ini>.yaml file
+
+    Parameters:
+    -----------
+    ini_file: str (format <path>/<file_name>.yaml)
+        Initial configuration file containing all simulation parameters
+    save_path: str
+        Path to save simulation results to
+    '''
+    # Check that ini file and save_path exists
+    assert os.path.isfile(ini_file), f"{ini_file} is not a file or does not exist"
+    if save_path is None:
+        save_path = os.path.dirname(ini_file)
+    if not os.path.exists(save_path):
+        Path(save_path).mkdir(parents=True, exist_ok=True)
+    amplitudes_file = os.path.join(save_path, 'amplitudes.npz')
+    spectra_file = os.path.join(save_path, 'spectra.npz')
+
+    # Load and parse ini yaml file
+    ini_config = read_yaml(ini_file)
+    fields_params = ini_config["fields"]
+    grid_params = ini_config["grid"]
+    perf_params = ini_config["performance"]
+
+    # Get grids
+    grid_xyz, grid_t = setup_grids(fields_params, grid_params)
+
+    # Field setup
+    time_start = time.perf_counter()
+    field = ExternalField(fields_params, grid_xyz)
+    time_field_setup = time.perf_counter()
+    # Calculate amplitudes
+    vacem = VacuumEmission(field, grid_xyz)
+    vacem.calculate_amplitudes(grid_t, save_path=amplitudes_file)
+    time_amplitudes = time.perf_counter()
+    maxrss_amplitudes = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+
+    del field, vacem
+
+    # Calculate spectra
+    analyzer = VacuumEmissionAnalyzer(amplitudes_file, spectra_file)
+    analyzer.get_spectra()
+    time_postprocess = time.perf_counter()
+
+    # Performance estimation
+    timings = {
+        'start': time_start,
+        'field_setup': time_field_setup,
+        'amplitudes': time_amplitudes,
+        'postprocess': time_postprocess
+    }
+
+    maxrss_total = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+
+    memory = {
+        'maxrss_amplitudes': maxrss_amplitudes,
+        'maxrss_total': maxrss_total
+    }
+
+    perf_stats = {
+        'timings': timings,
+        'memory': memory
+    }
+
+    print_performance_stats(perf_stats)
+
+    print("Simulation finished!")
+
+
+if __name__ == '__main__':
+    args = parse_args()
+    print(args.input)
+    print(args.output)
+    quvac_simulation(args.input, args.output)

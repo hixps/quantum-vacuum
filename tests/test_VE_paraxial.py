@@ -27,7 +27,7 @@ def test_two_paraxial_gaussians():
     # Define fields
     field_1 = {
         "field_type": "paraxial_gaussian_analytic",
-        "focus_x": (0.,0.,0.),
+        "focus_x": [0.,0.,0.],
         "focus_t": 0.,
         "theta": 0,
         "phi": 0,
@@ -41,7 +41,7 @@ def test_two_paraxial_gaussians():
 
     field_2 = {
         "field_type": "paraxial_gaussian_analytic",
-        "focus_x": (0.,0.,0.),
+        "focus_x": [0.,0.,0.],
         "focus_t": 0.,
         "theta": theta,
         "phi": 0,

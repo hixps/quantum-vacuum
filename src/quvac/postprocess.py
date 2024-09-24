@@ -155,10 +155,11 @@ class VacuumEmissionAnalyzer:
             })
         np.savez(self.save_path, **data)
     
-    def get_spectra(self, angles):
+    def get_spectra(self, angles=None):
         self.get_total_signal_spectrum()
         self.get_total_signal()
 
+        angles = (0.,0.,0.) if angles is None else angles
         self.get_pol_signal_spectrum(angles)
         self.get_pol_signal()
 
