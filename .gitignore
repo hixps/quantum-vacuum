@@ -6,6 +6,7 @@
 imgs/*
 data/*
 wisdom/*
+*/wisdom/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

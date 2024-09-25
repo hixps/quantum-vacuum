@@ -26,12 +26,14 @@ class VacuumEmission(object):
     field: quvac.Field
         External fields
     '''
-    def __init__(self, field, grid):
+    def __init__(self, field, grid, nthreads=None):
         self.field = field
         self.grid = grid
         self.grid.get_k_grid()
         # Update local dict with variables from GridXYZ class
         self.__dict__.update(self.grid.__dict__)
+
+        self.nthreads = nthreads if nthreads else 1
 
         # Define symbolic expressions to evaluate later
         self.F = F = "0.5 * (Bx**2 + By**2 + Bz**2 - Ex**2 - Ey**2 - Ez**2)"
@@ -65,7 +67,8 @@ class VacuumEmission(object):
         # Add number of threads
         self.tmp_fftw = [pyfftw.FFTW(a, a, axes=(0, 1, 2),
                                     direction='FFTW_FORWARD',
-                                    flags=('FFTW_MEASURE', ),)
+                                    flags=('FFTW_MEASURE', ),
+                                    threads=self.nthreads)
                         for a in self.tmp]
     
     def free_resources(self):

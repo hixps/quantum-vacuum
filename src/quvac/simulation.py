@@ -12,6 +12,7 @@ import time
 import resource
 
 import numpy as np
+import numexpr as ne
 import pyfftw
 
 from quvac.field.external_field import ExternalField
@@ -130,6 +131,11 @@ def quvac_simulation(ini_file, save_path=None, wisdom_file=None):
     fields_params = ini_config["fields"]
     grid_params = ini_config["grid"]
     perf_params = ini_config["performance"]
+    
+    # Set up number of threads
+    nthreads = perf_params['nthreads']
+    ne.set_num_threads(nthreads)
+    pyfftw.config.NUM_THREADS = nthreads
 
     # Load fftw-wisdom if possible
     if os.path.exists(wisdom_file):
@@ -146,7 +152,7 @@ def quvac_simulation(ini_file, save_path=None, wisdom_file=None):
     logger.info("Fields are set up")
 
     # Calculate amplitudes
-    vacem = VacuumEmission(field, grid_xyz)
+    vacem = VacuumEmission(field, grid_xyz, nthreads)
     vacem.calculate_amplitudes(grid_t, save_path=amplitudes_file)
     time_amplitudes = time.perf_counter()
     maxrss_amplitudes = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
