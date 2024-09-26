@@ -124,17 +124,23 @@ class ParaxialGaussianAnalytic(AnalyticField):
             self.W_num = W*self.E0**2
 
     
-    def calculate_field(self, t, E_out=None, B_out=None):
+    def calculate_field(self, t, E_out=None, B_out=None, mode='real'):
         self.psi_plane = ne.evaluate("omega*(t-t0) - k*z", global_dict=self.__dict__)
         self.phase = "(phase_no_t + psi_plane)"
-        Ex = ne.evaluate(f"E * exp(-(psi_plane/omega)**2/(tau/2)**2) * cos({self.phase})",
-                         global_dict=self.__dict__)
+        if mode == 'real':
+            Ex = ne.evaluate(f"E * exp(-(psi_plane/omega)**2/(tau/2)**2) * cos({self.phase})",
+                            global_dict=self.__dict__)
+        else:
+            Ex = ne.evaluate(f"E * exp(-(psi_plane/omega)**2/(tau/2)**2) * exp(1j*{self.phase})",
+                            global_dict=self.__dict__)
         Ey, Ez = 0., 0.
         By = Ex
         Bx, Bz = 0., 0.
+        dtype = np.float64 if mode == 'real' else np.complex128
         if E_out is None:
-            E_out = [np.zeros(self.grid_shape) for _ in range(3)]
-            B_out = [np.zeros(self.grid_shape) for _ in range(3)]
+            E_out = [np.zeros(self.grid_shape, dtype=dtype) for _ in range(3)]
+        if B_out is None:
+            B_out = [np.zeros(self.grid_shape, dtype=dtype) for _ in range(3)]
         
         # Transform to the original coordinate frame
         for i,(Ei,Bi) in enumerate(zip(E_out,B_out)):

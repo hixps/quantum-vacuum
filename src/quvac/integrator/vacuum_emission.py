@@ -33,7 +33,7 @@ class VacuumEmission(object):
         # Update local dict with variables from GridXYZ class
         self.__dict__.update(self.grid.__dict__)
 
-        self.nthreads = nthreads if nthreads else 1
+        self.nthreads = nthreads if nthreads else os.cpu_count()
 
         # Define symbolic expressions to evaluate later
         self.F = F = "0.5 * (Bx**2 + By**2 + Bz**2 - Ex**2 - Ey**2 - Ez**2)"

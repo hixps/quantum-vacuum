@@ -2,9 +2,11 @@
 This script provides uniform ExternalField class to unite all
 participating fields in one interface
 '''
+import os
 
 from quvac.field.abc import Field
 from quvac.field.paraxial_gaussian import ParaxialGaussianAnalytic
+from quvac.field.maxwell import ParaxialGaussianMaxwell
 
 
 class ExternalField(Field):
@@ -19,9 +21,11 @@ class ExternalField(Field):
     grid: (1d-np.array, 1d-np.array, 1d-np.array)
         xyz spatial grid to calculate fields on 
     '''
-    def __init__(self, fields_params, grid):
+    def __init__(self, fields_params, grid, nthreads=None):
         self.fields = []
         self.grid = grid
+
+        self.nthreads = nthreads if nthreads else os.cpu_count()
 
         for field_params in fields_params:
             self.setup_field(field_params)
@@ -31,6 +35,8 @@ class ExternalField(Field):
         match field_type:
             case "paraxial_gaussian_analytic":
                 field = ParaxialGaussianAnalytic(field_params, self.grid)
+            case "paraxial_gaussian_maxwell":
+                field = ParaxialGaussianMaxwell(field_params, self.grid, nthreads=self.nthreads)
             case _:
                 raise NotImplementedError(f"We do not support '{field_type}' field type")
         self.fields.append(field)
