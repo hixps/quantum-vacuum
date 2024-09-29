@@ -59,6 +59,8 @@ Field setup:               {:>15s}
 Amplitudes calculation:    {:>15s}
 Postprocess:               {:>15s}
 -------------------------------------------------
+Per iteration:             {:>15s}  
+-------------------------------------------------
 Total:                     {:>15s}
 =================================================
 
@@ -76,13 +78,15 @@ def get_performance_stats(perf_stats):
         'field_setup': timings['field_setup']-timings['start'],
         'amplitudes': timings['amplitudes']-timings['field_setup'],
         'postprocess': timings['postprocess']-timings['amplitudes'],
-        'total': timings['postprocess']-timings['start']
+        'per_iteration': timings['per_iteration'],
+        'total': timings['postprocess']-timings['start'],
     }
     timings = {k: format_time(t) for k,t in timings.items()}
     memory = {k: format_memory(m) for k,m in perf_stats['memory'].items()}
     perf_print = performance_str.format(timings['field_setup'],
                                         timings['amplitudes'],
                                         timings['postprocess'],
+                                        timings['per_iteration'],
                                         timings['total'],
                                         memory['maxrss_amplitudes'],
                                         memory['maxrss_total'])
@@ -169,12 +173,14 @@ def quvac_simulation(ini_file, save_path=None, wisdom_file=None):
     # Save gained wisdom (for fftw)
     save_wisdom(ini_file, wisdom_file)
 
+    time_per_iteration = (time_amplitudes - time_field_setup)/len(grid_t)
     # Performance estimation
     timings = {
         'start': time_start,
         'field_setup': time_field_setup,
         'amplitudes': time_amplitudes,
-        'postprocess': time_postprocess
+        'postprocess': time_postprocess,
+        'per_iteration': time_per_iteration
     }
 
     maxrss_total = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
