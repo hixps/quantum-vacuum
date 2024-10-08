@@ -109,7 +109,7 @@ class VacuumEmission(object):
                 self.tmp_fftw[i].execute()
                 # self.tmp[i] *= self.exp_shift_fft
                 self.U = self.tmp[i] #* self.exp_shift_fft
-                ne.evaluate(f"U{idx+1}_acc_{ax[i]} + U*exp(-1j*omega*t)*dt*weight*dV",
+                ne.evaluate(f"U{idx+1}_acc_{ax[i]} + U*exp(1j*omega*t)*dt*weight*dV",
                             global_dict=self.__dict__, out=self.__dict__[f"U{idx+1}_acc_{ax[i]}"])
                 # U_acc = self.__dict__[f"U{idx+1}_acc_{ax[i]}"]
                 # ne.evaluate(f"U_acc + U*exp(1j*omega*t)*dt*weight*dV",

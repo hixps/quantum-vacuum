@@ -33,7 +33,7 @@ class ParaxialGaussianMaxwell(MaxwellField):
         self.exp_shift_fft = ne.evaluate('exp(-1j*exp_shift_fft)', 
                                            global_dict=self.__dict__)
         
-        self.exp_shift_ifft = sum([np.fft.fftshift(kx)[0]*x for kx,x in zip(self.kgrid, self.xyz)])
+        self.exp_shift_ifft = sum([kx[0]*x for kx,x in zip(k_grid, self.xyz)])
         self.exp_shift_ifft = ne.evaluate('exp(1j*exp_shift_ifft)', 
                                            global_dict=self.__dict__)
 
@@ -49,6 +49,7 @@ class ParaxialGaussianMaxwell(MaxwellField):
         self.E_ini = [pyfftw.zeros_aligned(self.grid_shape,  dtype='complex128')
                       for _ in range(3)]
         if isinstance(field_params, dict):
+            print('Solo parameter')
             field_params = [field_params]
         for param in field_params:
             ini_field = ParaxialGaussianAnalytic(param, grid)
@@ -87,13 +88,14 @@ class ParaxialGaussianMaxwellMultiple(MaxwellField):
         self.E_ini = [pyfftw.zeros_aligned(self.grid_shape,  dtype='complex128')
                       for _ in range(3)]
 
-        # for param in field_params:
-        #     field = ParaxialGaussianMaxwell(param, grid, nthreads)
-        #     self.t0 = field.t0
-        #     self.a1 += field.a1
-        #     self.a2 += field.a2
-        #     for i in range(3):
-        #         self.E_ini[i] += field.E_ini[i]
+        for param in field_params:
+            print('Ho-ho')
+            field = ParaxialGaussianMaxwell(param, grid, nthreads)
+            self.t0 = field.t0
+            self.a1 += field.a1
+            self.a2 += field.a2
+            for i in range(3):
+                self.E_ini[i] += field.E_ini[i]
         
         # self.__dict__.update(field.__dict__)
         
