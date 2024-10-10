@@ -75,13 +75,15 @@ class MaxwellField(Field):
         # self.allocate_fft()
         # self.Ef = [0,0,0]
         for idx in range(3):
-            # self.Ef[idx] *= self.exp_shift_before_fft
+            self.Ef[idx] *= self.exp_shift_before_fft
             # self.Ef[idx] = pyfftw.interfaces.numpy_fft.fftn(self.Ef[idx], axes=(0,1,2), norm='backward')
             self.Ef_fftw[idx].execute()
-            self.Ef[idx] *= self.exp_shift_fft
+            self.Ef[idx] *= self.exp_shift_after_fft
+            self.Ef[idx] = np.fft.ifftshift(self.Ef[idx])
         # Calculate a1, a2 coefficients
         self.kx, self.ky, self.kz = self.kmeshgrid
         prefactor = self.dV
+        self.Efx, self.Efy, self.Efz = self.Ef
         # prefactor = ne.evaluate("where((kx==0)&(ky==0)&(kz==0), 0., -1j*dV / kabs)",
         #                         global_dict=self.__dict__)
         self.a1 = ne.evaluate(f"prefactor * (e1x*Efx + e1y*Efy + e1z*Efz)",
@@ -128,13 +130,13 @@ class MaxwellField(Field):
         # ne.evaluate("exp(-1j*omega*t) * 1j*kabs", global_dict=self.__dict__,
         #             out=self.prefactor)
         for idx in range(6):
-            field_comp = self.EB_[idx] #* self.exp_shift_before_ifft
+            field_comp = self.EB_[idx] * self.exp_shift_before_ifft
             # field_comp = self.__dict__[f'{field}f{ax}_expr']
             ne.evaluate(f"prefactor * field_comp", global_dict=self.__dict__,
                         out=self.EB[idx])
             self.EB_fftw[idx].execute()
             # self.EB[idx] *= self.norm_ifft
-            self.EB[idx] = self.EB[idx] * self.norm_ifft * self.exp_shift_ifft
+            self.EB[idx] = self.EB[idx] * self.norm_ifft #* self.exp_shift_after_ifft
         # for i,field in enumerate('EB'):
         #     for j,ax in enumerate('xyz'):
         #         idx = 3*i + j
@@ -147,8 +149,8 @@ class MaxwellField(Field):
         # problem that one should add fields in complex domain?
         # for idx,(Ei,Bi) in enumerate(zip(E_out, B_out)):
         for idx in range(3):
-            E_out[idx] += np.fft.fftshift(self.EB[idx])
-            B_out[idx] += np.fft.fftshift(self.EB[3+idx])
+            E_out[idx] += self.EB[idx]
+            B_out[idx] += self.EB[3+idx]
             # Ei += np.real(self.EB[idx])*self.norm_ifft
             # Bi += np.real(self.EB[3+idx])*self.norm_ifft
             # Ei += np.real(self.EB[idx])
