@@ -36,11 +36,11 @@ class ExternalField(Field):
         if maxwell_params:
             new_params.append(maxwell_params)
 
-        for field_params in new_params:
-            self.setup_field(field_params)
-
-        # for field_params in fields_params:
+        # for field_params in new_params:
         #     self.setup_field(field_params)
+
+        for field_params in fields_params:
+            self.setup_field(field_params)
 
     def setup_field(self, field_params):
         if isinstance(field_params, list):
@@ -70,7 +70,7 @@ class ExternalField(Field):
     def calculate_field(self, t, E_out=None, B_out=None):
         # self.allocate_buf()
         for field in self.fields:
-            field.calculate_field(t, E_out=E_out, B_out=B_out)
+            E_out, B_out = field.calculate_field(t, E_out=E_out, B_out=B_out)
         # if E_out is None:
         #     E_out = [np.zeros(self.grid.grid_shape) for _ in range(3)]
         #     B_out = [np.zeros(self.grid.grid_shape) for _ in range(3)]

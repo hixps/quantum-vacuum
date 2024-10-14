@@ -46,13 +46,13 @@ class VacuumEmission(object):
         # Define symbolic expressions to evaluate later
         self.F_expr = F = "0.5 * (Bx**2 + By**2 + Bz**2 - Ex**2 - Ey**2 - Ez**2)"
         self.G_expr = G ="-(Ex*Bx + Ey*By + Ez*Bz)"
-        self.U1 = [f"4*E{ax}*F + 7*B{ax}*G" for ax in "xyz"]
-        self.U2 = [f"4*B{ax}*F - 7*E{ax}*G" for ax in "xyz"]
+        self.U1 = [f"(4.*E{ax}*F + 7.*B{ax}*G)" for ax in "xyz"]
+        self.U2 = [f"(4.*B{ax}*F - 7.*E{ax}*G)" for ax in "xyz"]
 
         self.F, self.G = [np.zeros(self.grid_shape) for _ in range(2)]
         # self.U1 = [f"4*E{ax}*{F} + 7*B{ax}*{G}" for ax in "xyz"]
         # self.U2 = [f"4*B{ax}*{F} - 7*E{ax}*{G}" for ax in "xyz"]
-        self.I_ij = {f"{i}{j}": f"e{i}x*U{j}_acc_x + e{i}y*U{j}_acc_y + e{i}z*U{j}_acc_z"
+        self.I_ij = {f"{i}{j}": f"(e{i}x*U{j}_acc_x + e{i}y*U{j}_acc_y + e{i}z*U{j}_acc_z)"
                      for i in range(1,3) for j in range(1,3)}
         for key,val in self.I_ij.items():
             self.__dict__[f"I_{key}_expr"] = val
@@ -97,18 +97,21 @@ class VacuumEmission(object):
         # Calculate fields
         self.allocate_fields()
         self.field.calculate_field(t, E_out=self.E_out, B_out=self.B_out)
-        self.Ex, self.Ey, self.Ez = [E.real for E in self.E_out]
-        self.Bx, self.By, self.Bz = [B.real for B in self.B_out]
+        Ex, Ey, Ez = [E.real for E in self.E_out]
+        Bx, By, Bz = [B.real for B in self.B_out]
         ne.evaluate(self.F_expr, global_dict=self.__dict__, out=self.F)
         ne.evaluate(self.G_expr, global_dict=self.__dict__, out=self.G)
+        
         # Evaluate U1 and U2 expressions
         ax = 'xyz'
         for idx,U_expr in enumerate([self.U1, self.U2]):
             for i,expr in enumerate(U_expr):
                 ne.evaluate(expr, global_dict=self.__dict__, out=self.tmp[i])
+                # self.tmp[i] = np.fft.fftn(self.tmp[i], axes=(0,1,2))
                 self.tmp_fftw[i].execute()
                 # self.tmp[i] *= self.exp_shift_fft
-                self.U = self.tmp[i] #* self.exp_shift_fft
+                U = self.tmp[i] #* self.exp_shift_fft
+                # self.__dict__[f"U{idx+1}_acc_{ax[i]}"] += U*np.exp(1j*self.omega*t)*self.dt*weight*self.dV
                 ne.evaluate(f"U{idx+1}_acc_{ax[i]} + U*exp(1j*omega*t)*dt*weight*dV",
                             global_dict=self.__dict__, out=self.__dict__[f"U{idx+1}_acc_{ax[i]}"])
                 # U_acc = self.__dict__[f"U{idx+1}_acc_{ax[i]}"]
@@ -128,6 +131,7 @@ class VacuumEmission(object):
             end_pts = (0,len(t_grid)-1)
             for i,t in enumerate(t_grid):
                 weight = 0.5 if i in end_pts else 1.
+                # weight = 1
                 self.calculate_one_time_step(t, weight=weight)
         else:
             err_msg  = ("integration_method should be one of ['trapezoid'] but you " 
@@ -145,7 +149,7 @@ class VacuumEmission(object):
 
         # Results should be in U1_acc and U2_acc
         prefactor = 1j*np.sqrt(alpha*self.kabs) / (2*pi)**1.5 / 45 / BS**3 * m_e**2 * c**3 / hbar**2
-        self.S1 = ne.evaluate(f"prefactor * ({self.I_11_expr} - {self.I_22_expr})",
+        self.S1 = ne.evaluate(f"prefactor * ({self.I_11_expr} - ({self.I_22_expr}))",
                                global_dict=self.__dict__)
         self.S2 = ne.evaluate(f"prefactor * ({self.I_12_expr} + {self.I_21_expr})",
                                global_dict=self.__dict__)

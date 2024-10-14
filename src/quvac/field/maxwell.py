@@ -32,13 +32,13 @@ class ParaxialGaussianMaxwell(MaxwellField):
         self.exp_shift_before_fft = ne.evaluate('exp(-1j*exp_shift_before_fft)',
                                                 global_dict=self.__dict__)
         
-        self.exp_shift_after_fft = sum([(kx-kx.flatten()[0])*x.flatten()[0] 
-                                        for kx,x in zip(kmeshgrid_shift, self.xyz)])
+        self.exp_shift_after_fft = sum([(kx-kx.flatten()[0])*x[0] 
+                                        for kx,x in zip(kmeshgrid_shift, self.grid)])
         self.exp_shift_after_fft = ne.evaluate('exp(-1j*exp_shift_after_fft)',
                                                 global_dict=self.__dict__)
         
-        self.exp_shift_before_ifft = sum([(kx-kx.flatten()[0])*x.flatten()[0] 
-                                         for kx,x in zip(kmeshgrid_shift, self.xyz)])
+        self.exp_shift_before_ifft = sum([(kx-kx.flatten()[0])*x[0] 
+                                         for kx,x in zip(kmeshgrid_shift, self.grid)])
         self.exp_shift_before_ifft = ne.evaluate('exp(1j*exp_shift_before_ifft)',
                                                 global_dict=self.__dict__)
         

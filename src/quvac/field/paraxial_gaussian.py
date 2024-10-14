@@ -13,6 +13,34 @@ from quvac.field.abc import AnalyticField
 from quvac.field.utils import get_field_energy
 
 
+def EulerMatrix(a,b,c):
+    """
+    Calculate a Eulermatrix for three rotation angles a, b, c
+
+    Arguments:
+    a, b, c -- Rotation angles
+    """
+    R = np.array(np.zeros((3,3)))
+
+    ca, sa = [f(a) for f in [np.cos, np.sin]]
+    cb, sb = [f(b) for f in [np.cos, np.sin]]
+    cc, sc = [f(c) for f in [np.cos, np.sin]]
+
+    R[0,0] = ca*cb*cc-sa*sc
+    R[0,1] = -cc*sa-ca*cb*sc
+    R[0,2] = ca*sb
+
+    R[1,0] = cb*cc*sa+ca*sc
+    R[1,1] = ca*cc-cb*sa*sc
+    R[1,2] = sa*sb
+
+    R[2,0] = -cc*sb
+    R[2,1] = sb*sc
+    R[2,2] = cb
+
+    return R
+
+
 class ParaxialGaussianAnalytic(AnalyticField):
     '''
     Analytic expression for paraxial Gaussian
@@ -106,18 +134,22 @@ class ParaxialGaussianAnalytic(AnalyticField):
     def get_rotation(self):
         # Define rotation transforming (0,0,1) -> (kx,ky,kz) for vectors
         # and (1,0,0) -> e(beta) = e1*cos(beta) + e2*sin(beta)
-        self.rotation = Rotation.from_euler('ZYZ', (self.phi,self.theta,self.beta))
-        self.rotation_m = self.rotation.as_matrix()
-        # Inverse rotation: (kx,ky,kz) -> (0,0,1)
-        self.rotation_bwd = self.rotation.inv()
-        self.rotation_bwd_m = self.rotation_bwd.as_matrix()
+        # self.rotation = Rotation.from_euler('ZYZ', (self.phi,self.theta,self.beta))
+        # self.rotation_m = self.rotation.as_matrix()
+        # # Inverse rotation: (kx,ky,kz) -> (0,0,1)
+        # self.rotation_bwd = self.rotation.inv()
+        # self.rotation_bwd_m = self.rotation_bwd.as_matrix()
+
+        self.rotation_m = EulerMatrix(self.phi,self.theta,self.beta)
+        self.rotation_bwd_m = EulerMatrix(-self.beta,-self.theta,-self.phi)
+
 
     def rotate_coordinates(self):
         self.get_rotation()
         axes = 'xyz'
         x_, y_, z_ = self.xyz
         for i,ax in enumerate(axes):
-            mx, my, mz = self.rotation_bwd_m[i]
+            mx, my, mz = self.rotation_bwd_m[i,:]
             self.__dict__[ax] = ne.evaluate("mx*(x_-x0) + my*(y_-y0) + mz*(z_-z0)",
                                             global_dict=self.__dict__)
             
@@ -137,7 +169,7 @@ class ParaxialGaussianAnalytic(AnalyticField):
         self.psi_plane = ne.evaluate("omega*(t-t0) - k*z", global_dict=self.__dict__)
         self.phase = "(phase_no_t + psi_plane)"
         if mode == 'real':
-            Ex = ne.evaluate(f"E * exp(-(psi_plane/omega)**2/(tau/2.)**2) * cos({self.phase})",
+            Ex = ne.evaluate(f"E * exp(-(psi_plane/omega)**2/(tau/2.)**2) * sin({self.phase})",
                             global_dict=self.__dict__)
         else:
             s0 = ne.evaluate(f'exp(-1.j*{self.phase})', global_dict=self.__dict__)
@@ -156,7 +188,7 @@ class ParaxialGaussianAnalytic(AnalyticField):
         
         # Transform to the original coordinate frame
         for i,(Ei,Bi) in enumerate(zip(E_out,B_out)):
-            mx, my, mz = self.rotation_m[i]
+            mx, my, mz = self.rotation_m[i,:]
             ne.evaluate('Ei + mx*Ex + my*Ey + mz*Ez', out=Ei)
             ne.evaluate('Bi + mx*Bx + my*By + mz*Bz', out=Bi)
 
