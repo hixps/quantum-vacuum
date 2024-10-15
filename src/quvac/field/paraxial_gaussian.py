@@ -98,8 +98,7 @@ class ParaxialGaussianAnalytic(AnalyticField):
         grid_keys = 'grid_shape xyz dV'.split()
         self.__dict__.update({k:v for k,v in self.grid.__dict__.items() 
                               if k in grid_keys})
-
-
+        
         # Define additional field variables
         self.x0, self.y0, self.z0 = self.focus_x
         self.t0 = self.focus_t
@@ -112,17 +111,11 @@ class ParaxialGaussianAnalytic(AnalyticField):
         self.rotate_coordinates()
 
         # Define variables not depending on time step
-        # self.w = "(w0 * sqrt(1. + (z/zR)**2))"
-        # self.r2 = "(x**2 + y**2)"
-        # self.R = "(z + zR**2/z)"
-        # self.E_expr = f"B0 * w0/{self.w} * exp(-{self.r2}/{self.w}**2)"
-        # self.phase_no_t = ne.evaluate(f"phase0 - k*{self.r2}/(2.*{self.R}) + arctan(z/zR)",
-        #                               global_dict=self.__dict__)
-        self.w = ne.evaluate("(w0 * sqrt(1. + (z/zR)**2))", global_dict=self.__dict__)
-        self.r = ne.evaluate("sqrt(x**2 + y**2)", global_dict=self.__dict__)
-        self.R = ne.evaluate("(z + zR**2/z)", global_dict=self.__dict__)
-        self.E_expr = f"B0 * w0/w * exp(-r**2/w**2)"
-        self.phase_no_t = ne.evaluate(f"phase0 - k*r**2/(2.*R) + arctan(z/zR)",
+        self.w = "(w0 * sqrt(1. + (z/zR)**2))"
+        self.r2 = "(x**2 + y**2)"
+        self.R = "(z + zR**2/z)"
+        self.E_expr = f"B0 * w0/{self.w} * exp(-{self.r2}/{self.w}**2)"
+        self.phase_no_t = ne.evaluate(f"phase0 - k*{self.r2}/(2.*{self.R}) + arctan(z/zR)",
                                       global_dict=self.__dict__)
         
         self.E = ne.evaluate(self.E_expr, global_dict=self.__dict__)
@@ -139,10 +132,6 @@ class ParaxialGaussianAnalytic(AnalyticField):
         # Inverse rotation: (kx,ky,kz) -> (0,0,1)
         self.rotation_bwd = self.rotation.inv()
         self.rotation_bwd_m = self.rotation_bwd.as_matrix()
-
-        # self.rotation_m = EulerMatrix(self.phi,self.theta,self.beta)
-        # self.rotation_bwd_m = EulerMatrix(-self.beta,-self.theta,-self.phi)
-
 
     def rotate_coordinates(self):
         self.get_rotation()
@@ -172,11 +161,8 @@ class ParaxialGaussianAnalytic(AnalyticField):
             Ex = ne.evaluate(f"E * exp(-(psi_plane/omega)**2/(tau/2.)**2) * sin({self.phase})",
                             global_dict=self.__dict__)
         else:
-            s0 = ne.evaluate(f'exp(-1.j*{self.phase})', global_dict=self.__dict__)
-            Ex = ne.evaluate(f"E * 1.j*exp(-(2.*psi_plane/(omega*tau))**2) * s0",
+            Ex = ne.evaluate(f"E * 1.j*exp(-(2.*psi_plane/(omega*tau))**2) * exp(-1.j*{self.phase})",
                             global_dict=self.__dict__)
-            # Ex = ne.evaluate(f"E * exp(-(2.*psi_plane/(omega*tau))**2) * exp(1.j*{self.phase})",
-            #                 global_dict=self.__dict__)
         Ey, Ez = 0., 0.
         By = Ex.copy()
         Bx, Bz = 0., 0.

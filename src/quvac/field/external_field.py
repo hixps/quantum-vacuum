@@ -32,15 +32,15 @@ class ExternalField(Field):
         maxwell_params = [params for params in fields_params
                           if params['field_type'].endswith('maxwell')]
         new_params = [params for params in fields_params
-                        if not params['field_type'].endswith('maxwell')]
+                      if not params['field_type'].endswith('maxwell')]
         if maxwell_params:
             new_params.append(maxwell_params)
 
-        # for field_params in new_params:
-        #     self.setup_field(field_params)
-
-        for field_params in fields_params:
+        for field_params in new_params:
             self.setup_field(field_params)
+
+        # for field_params in fields_params:
+        #     self.setup_field(field_params)
 
     def setup_field(self, field_params):
         if isinstance(field_params, list):

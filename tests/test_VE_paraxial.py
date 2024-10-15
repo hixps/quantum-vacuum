@@ -86,5 +86,5 @@ def test_two_paraxial_gaussians():
     print(f"Total signal (theory): {N_signal_th:.3f}")
     print(f"Total signal (num)   : {N_signal_num:.3f}")
 
-    err_msg = "Analytical and numerical total signal differ by more than 10%"
-    assert np.isclose(N_signal_th, N_signal_num, rtol=1e-1), err_msg
+    err_msg = "Analytical and numerical total signal differ by more than 1%"
+    assert np.isclose(N_signal_th, N_signal_num, rtol=1e-2), err_msg

@@ -44,29 +44,18 @@ class VacuumEmission(object):
                                            global_dict=self.__dict__)
 
         # Define symbolic expressions to evaluate later
-        self.F_expr = F = "0.5 * (Bx**2 + By**2 + Bz**2 - Ex**2 - Ey**2 - Ez**2)"
-        self.G_expr = G ="-(Ex*Bx + Ey*By + Ez*Bz)"
+        self.F_expr = "0.5 * (Bx**2 + By**2 + Bz**2 - Ex**2 - Ey**2 - Ez**2)"
+        self.G_expr = "-(Ex*Bx + Ey*By + Ez*Bz)"
         self.U1 = [f"(4.*E{ax}*F + 7.*B{ax}*G)" for ax in "xyz"]
         self.U2 = [f"(4.*B{ax}*F - 7.*E{ax}*G)" for ax in "xyz"]
 
         self.F, self.G = [np.zeros(self.grid_shape) for _ in range(2)]
-        # self.U1 = [f"4*E{ax}*{F} + 7*B{ax}*{G}" for ax in "xyz"]
-        # self.U2 = [f"4*B{ax}*{F} - 7*E{ax}*{G}" for ax in "xyz"]
+
         self.I_ij = {f"{i}{j}": f"(e{i}x*U{j}_acc_x + e{i}y*U{j}_acc_y + e{i}z*U{j}_acc_z)"
                      for i in range(1,3) for j in range(1,3)}
         for key,val in self.I_ij.items():
             self.__dict__[f"I_{key}_expr"] = val
     
-    # def allocate_fields(self):
-    #     try:
-    #         for i in range(3):
-    #             self.E_out[i] *= 0.
-    #             self.B_out[i] *= 0.
-    #     except:
-    #         self.E_out = [np.zeros(self.grid_shape) for _ in range(3)]
-    #         self.B_out = [np.zeros(self.grid_shape) for _ in range(3)]
-    #         self.Ex, self.Ey, self.Ez = self.E_out
-    #         self.Bx, self.By, self.Bz = self.B_out
     def allocate_fields(self):
         self.E_out = [np.zeros(self.grid_shape, dtype=np.complex128) for _ in range(3)]
         self.B_out = [np.zeros(self.grid_shape, dtype=np.complex128) for _ in range(3)]
@@ -114,15 +103,6 @@ class VacuumEmission(object):
                 # self.__dict__[f"U{idx+1}_acc_{ax[i]}"] += U*np.exp(1j*self.omega*t)*self.dt*weight*self.dV
                 ne.evaluate(f"U{idx+1}_acc_{ax[i]} + U*exp(1j*omega*t)*dt*weight*dV",
                             global_dict=self.__dict__, out=self.__dict__[f"U{idx+1}_acc_{ax[i]}"])
-                # U_acc = self.__dict__[f"U{idx+1}_acc_{ax[i]}"]
-                # ne.evaluate(f"U_acc + U*exp(1j*omega*t)*dt*weight*dV",
-                #             global_dict=dict(U_acc=U_acc,
-                #                              U=self.tmp[i],
-                #                              omega=self.omega,
-                #                              dt=self.dt,
-                #                              weight=weight,
-                #                              dV=self.dV),
-                #             out=U_acc)
         # scalene_profiler.stop()
 
     def calculate_time_integral(self, t_grid, integration_method="trapezoid"):
@@ -131,7 +111,6 @@ class VacuumEmission(object):
             end_pts = (0,len(t_grid)-1)
             for i,t in enumerate(t_grid):
                 weight = 0.5 if i in end_pts else 1.
-                # weight = 1
                 self.calculate_one_time_step(t, weight=weight)
         else:
             err_msg  = ("integration_method should be one of ['trapezoid'] but you " 
@@ -149,7 +128,8 @@ class VacuumEmission(object):
 
         # Results should be in U1_acc and U2_acc
         prefactor = 1j*np.sqrt(alpha*self.kabs) / (2*pi)**1.5 / 45 / BS**3 * m_e**2 * c**3 / hbar**2
-        self.S1 = ne.evaluate(f"prefactor * ({self.I_11_expr} - ({self.I_22_expr}))",
+        # Next time need to be careful with f-strings and brackets
+        self.S1 = ne.evaluate(f"prefactor * ({self.I_11_expr} - {self.I_22_expr})",
                                global_dict=self.__dict__)
         self.S2 = ne.evaluate(f"prefactor * ({self.I_12_expr} + {self.I_21_expr})",
                                global_dict=self.__dict__)
