@@ -99,8 +99,9 @@ class VacuumEmissionAnalyzer:
         self.N_xyz = np.fft.fftshift(self.S / (2*pi)**3)
 
     def get_total_signal(self):
-        self.N_tot = ne.evaluate("sum(N_xyz * dVk)",
+        self.N_tot = ne.evaluate("sum(N_xyz)",
                            global_dict=self.__dict__)
+        self.N_tot *= self.dVk
     
     def get_pol_signal_spectrum(self, angles):
         '''
@@ -141,10 +142,10 @@ class VacuumEmissionAnalyzer:
             'ky': self.ky,
             'kz': self.kz,
             'N_xyz': self.N_xyz,
-            'N_tot': self.N_tot,
+            'N_total': self.N_tot,
             'ep': self.ep,
             'Np_xyz': self.Np_xyz,
-            'Np_tot': self.Np_tot
+            'Np_total': self.Np_tot
         }
         if self.__dict__.get('N_sph', None) is not None:
             data.update({

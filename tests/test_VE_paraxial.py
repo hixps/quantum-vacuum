@@ -71,13 +71,13 @@ def test_two_paraxial_gaussians():
     # Calculate analytic scalings
     N_signal_th, N_perp_th = get_two_paraxial_scaling(fields_params)
 
-    amplitude_path = 'data/test/2_paraxials_amp.npz'
+    amplitude_path = 'data/test/paraxial/2_paraxials_amp.npz'
     # Calculate signal numerically
     field = ExternalField(fields_params, grid)
     vacem = VacuumEmission(field, grid)
     vacem.calculate_amplitudes(t_grid, save_path=amplitude_path)
 
-    save_path = 'data/test/2_paraxials.npz'
+    save_path = 'data/test/paraxial/2_paraxials.npz'
     analyzer = VacuumEmissionAnalyzer(amplitude_path, save_path)
     angles = (0., 0., 0.)
     analyzer.get_spectra(angles)
@@ -86,5 +86,5 @@ def test_two_paraxial_gaussians():
     print(f"Total signal (theory): {N_signal_th:.3f}")
     print(f"Total signal (num)   : {N_signal_num:.3f}")
 
-    err_msg = "Analytical and numerical total signal differ by more than 10%"
-    assert np.isclose(N_signal_th, N_signal_num, rtol=1e-1), err_msg
+    err_msg = "Analytical and numerical total signal differ by more than 1%"
+    assert np.isclose(N_signal_th, N_signal_num, rtol=1e-2), err_msg

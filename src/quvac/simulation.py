@@ -56,8 +56,11 @@ performance_str = '''
 Timings:
 =================================================
 Field setup:               {:>15s}
+Vacem setup:               {:>15s}
 Amplitudes calculation:    {:>15s}
 Postprocess:               {:>15s}
+-------------------------------------------------
+Per iteration:             {:>15s}  
 -------------------------------------------------
 Total:                     {:>15s}
 =================================================
@@ -74,15 +77,19 @@ def get_performance_stats(perf_stats):
     timings = perf_stats['timings']
     timings = {
         'field_setup': timings['field_setup']-timings['start'],
-        'amplitudes': timings['amplitudes']-timings['field_setup'],
+        'vacem_setup': timings['vacem_setup']-timings['field_setup'],
+        'amplitudes': timings['amplitudes']-timings['vacem_setup'],
         'postprocess': timings['postprocess']-timings['amplitudes'],
-        'total': timings['postprocess']-timings['start']
+        'per_iteration': timings['per_iteration'],
+        'total': timings['postprocess']-timings['start'],
     }
     timings = {k: format_time(t) for k,t in timings.items()}
     memory = {k: format_memory(m) for k,m in perf_stats['memory'].items()}
     perf_print = performance_str.format(timings['field_setup'],
+                                        timings['vacem_setup'],
                                         timings['amplitudes'],
                                         timings['postprocess'],
+                                        timings['per_iteration'],
                                         timings['total'],
                                         memory['maxrss_amplitudes'],
                                         memory['maxrss_total'])
@@ -138,8 +145,8 @@ def quvac_simulation(ini_file, save_path=None, wisdom_file=None):
     pyfftw.config.NUM_THREADS = nthreads
 
     # Load fftw-wisdom if possible
-    if os.path.exists(wisdom_file):
-        pyfftw.import_wisdom(load_wisdom(wisdom_file))
+    # if os.path.exists(wisdom_file):
+    #     pyfftw.import_wisdom(load_wisdom(wisdom_file))
 
     # Get grids
     grid_xyz, grid_t = setup_grids(fields_params, grid_params)
@@ -147,12 +154,13 @@ def quvac_simulation(ini_file, save_path=None, wisdom_file=None):
 
     # Field setup
     time_start = time.perf_counter()
-    field = ExternalField(fields_params, grid_xyz)
+    field = ExternalField(fields_params, grid_xyz, nthreads=nthreads)
     time_field_setup = time.perf_counter()
     logger.info("Fields are set up")
 
     # Calculate amplitudes
     vacem = VacuumEmission(field, grid_xyz, nthreads)
+    time_vacem_setup = time.perf_counter()
     vacem.calculate_amplitudes(grid_t, save_path=amplitudes_file)
     time_amplitudes = time.perf_counter()
     maxrss_amplitudes = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
@@ -169,12 +177,15 @@ def quvac_simulation(ini_file, save_path=None, wisdom_file=None):
     # Save gained wisdom (for fftw)
     save_wisdom(ini_file, wisdom_file)
 
+    time_per_iteration = (time_amplitudes - time_field_setup)/len(grid_t)
     # Performance estimation
     timings = {
         'start': time_start,
         'field_setup': time_field_setup,
+        'vacem_setup': time_vacem_setup,
         'amplitudes': time_amplitudes,
-        'postprocess': time_postprocess
+        'postprocess': time_postprocess,
+        'per_iteration': time_per_iteration
     }
 
     maxrss_total = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
