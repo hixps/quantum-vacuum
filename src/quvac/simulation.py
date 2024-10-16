@@ -145,8 +145,8 @@ def quvac_simulation(ini_file, save_path=None, wisdom_file=None):
     pyfftw.config.NUM_THREADS = nthreads
 
     # Load fftw-wisdom if possible
-    # if os.path.exists(wisdom_file):
-    #     pyfftw.import_wisdom(load_wisdom(wisdom_file))
+    if os.path.exists(wisdom_file):
+        pyfftw.import_wisdom(load_wisdom(wisdom_file))
 
     # Get grids
     grid_xyz, grid_t = setup_grids(fields_params, grid_params)
