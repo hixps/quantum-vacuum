@@ -142,10 +142,10 @@ class VacuumEmissionAnalyzer:
             'ky': self.ky,
             'kz': self.kz,
             'N_xyz': self.N_xyz,
-            'N_tot': self.N_tot,
+            'N_total': self.N_tot,
             'ep': self.ep,
             'Np_xyz': self.Np_xyz,
-            'Np_tot': self.Np_tot
+            'Np_total': self.Np_tot
         }
         if self.__dict__.get('N_sph', None) is not None:
             data.update({

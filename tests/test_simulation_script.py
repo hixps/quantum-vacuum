@@ -77,7 +77,7 @@ def test_simulation():
         'performance': {}
     }
 
-    path = 'data/test_sim'
+    path = 'data/test/test_sim'
     Path(path).mkdir(parents=True, exist_ok=True)
 
     ini_file = os.path.join(path, 'ini.yml')

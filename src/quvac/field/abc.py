@@ -95,7 +95,7 @@ class MaxwellField(Field):
         # Fix energy
         # W_upd = get_field_energy_kspace(self.a1, self.a2, self.kabs, self.dVk, mode='without 1/k')
         W_upd = get_field_energy_kspace(self.a1, self.a2, self.kabs, self.dVk, mode='with 1/k')
-        print(W_upd)
+
         self.a1 *= np.sqrt(self.W/W_upd) #/ (2*pi)**1.5
         self.a2 *= np.sqrt(self.W/W_upd) #/ (2*pi)**1.5
 
