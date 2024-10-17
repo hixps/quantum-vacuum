@@ -9,7 +9,7 @@ import pytest
 import numpy as np
 from scipy.constants import c
 
-from quvac.grid_utils import get_xyz_size, get_t_size
+from quvac.grid import get_xyz_size, get_t_size
 from quvac.utils import write_yaml, read_yaml
 
 

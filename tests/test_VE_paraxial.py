@@ -9,9 +9,8 @@ from scipy.constants import pi, c
 
 from quvac.field.external_field import ExternalField
 from quvac.integrator.vacuum_emission import VacuumEmission
-from quvac.grid_utils import get_xyz_size, get_t_size
+from quvac.grid import GridXYZ, get_xyz_size, get_t_size
 from quvac.analytic_scalings import get_two_paraxial_scaling
-from quvac.grid import GridXYZ
 from quvac.postprocess import VacuumEmissionAnalyzer
 
 

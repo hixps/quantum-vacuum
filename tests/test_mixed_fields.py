@@ -16,13 +16,13 @@ from quvac.utils import write_yaml
 SCRIPT_PATH = 'src/quvac/simulation.py'
 
 
-def test_simulation():
+def test_analytic_maxwell():
     # Define field parameters
     tau = 25e-15
     W = 25
     lam = 0.8e-6
     w0 = 2*lam
-    theta = 90
+    theta = 180
     beta = 90
 
     # Define fields
@@ -41,7 +41,7 @@ def test_simulation():
     }
 
     field_2 = {
-        "field_type": "paraxial_gaussian_analytic",
+        "field_type": "paraxial_gaussian_maxwell",
         "focus_x": [0.,0.,0.],
         "focus_t": 0.,
         "theta": theta,
@@ -57,7 +57,7 @@ def test_simulation():
     fields_params = [field_1, field_2]
 
     # Set up grid parameters
-    x0, y0, z0 = 5*c*tau, 12*w0, 5*c*tau
+    x0, y0, z0 = 12*w0, 12*w0, 5*c*tau
     box_size = np.array([x0, y0, z0])/2
     Nxyz = get_xyz_size(fields_params, box_size)
     Nx, Ny, Nz = Nxyz

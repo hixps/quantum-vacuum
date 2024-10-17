@@ -17,7 +17,7 @@ import pyfftw
 
 from quvac.field.external_field import ExternalField
 from quvac.integrator.vacuum_emission import VacuumEmission
-from quvac.grid_utils import setup_grids
+from quvac.grid import setup_grids
 from quvac.postprocess import VacuumEmissionAnalyzer
 from quvac.utils import (read_yaml, write_yaml, format_memory, format_time,
                          load_wisdom, save_wisdom)

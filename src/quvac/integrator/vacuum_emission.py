@@ -59,8 +59,6 @@ class VacuumEmission(object):
     def allocate_fields(self):
         self.E_out = [np.zeros(self.grid_shape, dtype=np.complex128) for _ in range(3)]
         self.B_out = [np.zeros(self.grid_shape, dtype=np.complex128) for _ in range(3)]
-        # self.Ex, self.Ey, self.Ez = self.E_out
-        # self.Bx, self.By, self.Bz = self.B_out
 
     def allocate_result_arrays(self):
         self.U1_acc = [np.zeros(self.grid_shape, dtype='complex128') for _ in range(3)]

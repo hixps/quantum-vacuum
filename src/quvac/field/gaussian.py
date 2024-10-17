@@ -9,39 +9,11 @@ import numexpr as ne
 from scipy.constants import pi, c
 from scipy.spatial.transform import Rotation
 
-from quvac.field.abc import AnalyticField
+from quvac.field.abc import ExplicitField
 from quvac.field.utils import get_field_energy
 
 
-def EulerMatrix(a,b,c):
-    """
-    Calculate a Eulermatrix for three rotation angles a, b, c
-
-    Arguments:
-    a, b, c -- Rotation angles
-    """
-    R = np.array(np.zeros((3,3)))
-
-    ca, sa = [f(a) for f in [np.cos, np.sin]]
-    cb, sb = [f(b) for f in [np.cos, np.sin]]
-    cc, sc = [f(c) for f in [np.cos, np.sin]]
-
-    R[0,0] = ca*cb*cc-sa*sc
-    R[0,1] = -cc*sa-ca*cb*sc
-    R[0,2] = ca*sb
-
-    R[1,0] = cb*cc*sa+ca*sc
-    R[1,1] = ca*cc-cb*sa*sc
-    R[1,2] = sa*sb
-
-    R[2,0] = -cc*sb
-    R[2,1] = sb*sc
-    R[2,2] = cb
-
-    return R
-
-
-class ParaxialGaussianAnalytic(AnalyticField):
+class GaussianAnalytic(ExplicitField):
     '''
     Analytic expression for paraxial Gaussian
     All field parameters are in SI units
@@ -79,6 +51,7 @@ class ParaxialGaussianAnalytic(AnalyticField):
     '''
 
     def __init__(self, field_params, grid):
+        super().__init__(grid)
         # Dynamically create class instance variables available with 
         # self.<variable_name>
         angles = 'theta phi beta phase0'.split()
@@ -152,10 +125,9 @@ class ParaxialGaussianAnalytic(AnalyticField):
             self.E = ne.evaluate(self.E_expr, global_dict=self.__dict__)
             self.W_num = W*self.E0**2
 
-    
     def calculate_field(self, t, E_out=None, B_out=None, mode='real'):
         k = 2. * pi / self.lam
-        self.psi_plane = ne.evaluate("omega*(t-t0) - k*z", global_dict=self.__dict__)
+        self.psi_plane = ne.evaluate("(omega*(t-t0) - k*z)", global_dict=self.__dict__)
         self.phase = "(phase_no_t + psi_plane)"
         if mode == 'real':
             Ex = ne.evaluate(f"E * exp(-(psi_plane/omega)**2/(tau/2.)**2) * sin({self.phase})",
