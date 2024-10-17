@@ -11,8 +11,7 @@ from scipy.constants import pi
 from scipy.interpolate import RegularGridInterpolator
 from astropy.coordinates import cartesian_to_spherical
 
-from quvac.grid import GridXYZ
-from quvac.grid_utils import get_pol_basis
+from quvac.grid import GridXYZ, get_pol_basis
 
 
 def get_polarization_vector(theta, phi, beta):

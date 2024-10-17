@@ -1,6 +1,6 @@
 '''
 This script provides basic linear Maxwell propagation class
-and a particular implementation of ParaxialGaussianMaxwell
+and a particular implementation of GaussianMaxwell
 '''
 import os
 
@@ -9,112 +9,100 @@ import numexpr as ne
 from scipy.constants import pi, c
 import pyfftw
 
-from quvac.field.abc import MaxwellField
-from quvac.field.paraxial_gaussian import ParaxialGaussianAnalytic
+from quvac.field.abc import Field
+from quvac.field.gaussian import GaussianAnalytic
 
 
-class ParaxialGaussianMaxwell(MaxwellField):
+SPATIAL_MODEL_FIELDS = {
+    'paraxial_gaussian_maxwell': GaussianAnalytic,
+}
+
+
+class MaxwellField(Field):
     '''
-    Initial field at focus as paraxial gaussian and propagate
-    to later timesteps according to linear Maxwell equations
+    For such fields the initial field distribution (spectral coefficients)
+    at a certain time step is given with analytic expression or from file.
+    For later time steps the field is propagated according to linear Maxwell 
+    equations 
     '''
-    def __init__(self, field_params, grid, nthreads=None):
-        self.grid = grid
-        self.grid.get_k_grid()
-        self.__dict__.update(self.grid.__dict__)
+    def __init__(self, grid):
+        self.grid_obj = grid
+        if not self.grid_obj.k_grid_calculated:
+            self.grid_obj.get_k_grid()
+        self.__dict__.update(self.grid_obj.__dict__)
 
-        k_grid = [np.fft.fftshift(kx) for kx in self.kgrid]
-        phi0 = sum([x[0]*kx[0] for x,kx in zip(self.grid, k_grid)])
+        self.omega = self.kabs*c
+        self.norm_ifft = self.dVk / (2.*pi)**3
+        for ax in 'xyz':
+            self.__dict__[f'Ef{ax}_expr'] = f"(e1{ax}*a1 + e2{ax}*a2)"
+            self.__dict__[f'Bf{ax}_expr'] = f"(e2{ax}*a1 - e1{ax}*a2)"
 
-        kmeshgrid_shift = np.meshgrid(*k_grid, indexing='ij', sparse=True)
+    def allocate_ifft(self):
+        self.EB = [pyfftw.zeros_aligned(self.grid_shape,  dtype='complex128')
+                   for _ in range(6)]
+        self.EB_ = [pyfftw.zeros_aligned(self.grid_shape,  dtype='complex128')
+                   for _ in range(6)]
+        # pyfftw scheme
+        self.EB_fftw = [pyfftw.FFTW(a, a, axes=(0, 1, 2),
+                                    direction='FFTW_BACKWARD',
+                                    flags=('FFTW_MEASURE', ),
+                                    threads=1)
+                        for a in self.EB]
 
-        self.exp_shift_before_fft = sum([kx[0]*(x-x.flatten()[0]) for kx,x in zip(k_grid, self.xyz)])
-        self.exp_shift_before_fft = ne.evaluate('exp(-1j*exp_shift_before_fft)',
-                                                global_dict=self.__dict__)
-        
-        self.exp_shift_after_fft = sum([(kx-kx.flatten()[0])*x[0] 
-                                        for kx,x in zip(kmeshgrid_shift, self.grid)])
-        self.exp_shift_after_fft = ne.evaluate('exp(-1j*exp_shift_after_fft)',
-                                                global_dict=self.__dict__)
-        
-        self.exp_shift_before_ifft = sum([(kx-kx.flatten()[0])*x[0] 
-                                         for kx,x in zip(kmeshgrid_shift, self.grid)])
-        self.exp_shift_before_ifft = ne.evaluate('exp(1j*exp_shift_before_ifft)',
-                                                global_dict=self.__dict__)
-        
-        self.exp_shift_after_ifft = sum([kx[0]*(x-x.flatten()[0]) for kx,x in zip(k_grid, self.xyz)])
-        self.exp_shift_after_ifft = ne.evaluate('exp(1j*exp_shift_after_ifft)',
-                                                global_dict=self.__dict__)
-        
-
-        self.nthreads = nthreads if nthreads else os.cpu_count()
-
-        # Initialize base class
-        super().__init__()
-        self.allocate_fft()
-
-        self.W = 0.
-
-        # Initialize the analytic class and calculate ini field
-        self.E_ini = [pyfftw.zeros_aligned(self.grid_shape,  dtype='complex128')
-                      for _ in range(3)]
-        if isinstance(field_params, dict):
-            field_params = [field_params]
-        for param in field_params:
-            ini_field = ParaxialGaussianAnalytic(param, grid)
-            self.t0 = ini_field.t0
-            self.W += ini_field.W
-            ini_field.calculate_field(self.t0, E_out=self.Ef, mode='complex')
-
-        for i in range(3):
-            self.E_ini[i] += self.Ef[i].copy()
-        # Get a1,a2 coefficients
-        self.get_a12(self.E_ini)
-        # self.shift_arrays()
-        self.allocate_ifft()
-        self.get_fourier_fields()
+    def get_fourier_fields(self):
+        for i,field in enumerate('EB'):
+            for j,ax in enumerate('xyz'):
+                idx = 3*i + j
+                ne.evaluate(self.__dict__[f'{field}f{ax}_expr'], global_dict=self.__dict__,
+                            out=self.EB_[idx])
 
     def calculate_field(self, t, E_out=None, B_out=None):
-        return super().calculate_field(t, E_out, B_out)
+        if E_out is None:
+            E_out = [np.zeros(self.grid_shape, dtype=np.complex128) for _ in range(3)]
+            B_out = [np.zeros(self.grid_shape, dtype=np.complex128) for _ in range(3)]
+        
+        # Calculate fourier of fields at time t and transform back to 
+        # spatial domain
+        prefactor = ne.evaluate("exp(-1.j*omega*(t-t0))", global_dict=self.__dict__)
+        for idx in range(6):
+            ne.evaluate(f"prefactor * EB", global_dict={'EB': self.EB_[idx]},
+                        out=self.EB[idx])
+            self.EB_fftw[idx].execute()
+        
+        for idx in range(3):
+            E_out[idx] += self.EB[idx] * self.norm_ifft
+            B_out[idx] += self.EB[3+idx] * self.norm_ifft
+        return E_out, B_out
 
 
-class ParaxialGaussianMaxwellMultiple(MaxwellField):
-
-    def __init__(self, field_params, grid, nthreads=None):
-        self.grid = grid
-        self.grid.get_k_grid()
-        self.__dict__.update(self.grid.__dict__)
-
-        self.nthreads = nthreads if nthreads else os.cpu_count()
-
-        # Initialize base class
-        super().__init__()
-        self.allocate_fft()
+class MaxwellMultiple(MaxwellField):
+    '''
+    Calculate spectral coefficients from several fields and
+    propagate them
+    '''
+    def __init__(self, fields, grid, nthreads=None):
+        super().__init__(grid)
 
         self.a1, self.a2 = [pyfftw.zeros_aligned(self.grid_shape,  dtype='complex128')
                             for _ in range(2)]
-        self.E_ini = [pyfftw.zeros_aligned(self.grid_shape,  dtype='complex128')
-                      for _ in range(3)]
+        fields = [fields] if isinstance(fields, dict) else fields
+        for field in fields:
+            a1, a2 = self.get_a12_from_field(field)
+            self.a1 += a1
+            self.a2 += a2
 
-        for param in field_params:
-            field = ParaxialGaussianMaxwell(param, grid, nthreads)
-            self.t0 = field.t0
-            self.a1 += field.a1
-            self.a2 += field.a2
-            for i in range(3):
-                self.E_ini[i] += field.E_ini[i]
-        
-        keys = 'exp_shift_before_ifft exp_shift_after_ifft'.split()
-        self.__dict__.update({k:v for k,v in field.__dict__.items() 
-                              if k in keys})
-        # self.__dict__.update(field.__dict__)
-        
         self.allocate_ifft()
         self.get_fourier_fields()
 
+    def get_a12_from_field(self, field_params):
+        field_type = field_params['field_type']
+        if field_type in SPATIAL_MODEL_FIELDS:
+            cls = SPATIAL_MODEL_FIELDS[field_type]
+            ini_field = cls(field_params, self.grid_obj)
+            self.t0 = ini_field.t0
+            a1, a2 = ini_field.get_a12(ini_field.t0)
+        return a1, a2
+
     def calculate_field(self, t, E_out=None, B_out=None):
         return super().calculate_field(t, E_out, B_out)
-
-
-        
 
