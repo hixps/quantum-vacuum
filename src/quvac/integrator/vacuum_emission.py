@@ -82,7 +82,6 @@ class VacuumEmission(object):
         del self.tmp, self.tmp_fftw
 
     def calculate_one_time_step(self, t, weight=1):
-        # scalene_profiler.start()
         # Calculate fields
         self.allocate_fields()
         self.field.calculate_field(t, E_out=self.E_out, B_out=self.B_out)
@@ -96,14 +95,10 @@ class VacuumEmission(object):
         for idx,U_expr in enumerate([self.U1, self.U2]):
             for i,expr in enumerate(U_expr):
                 ne.evaluate(expr, global_dict=self.__dict__, out=self.tmp[i])
-                # self.tmp[i] = np.fft.fftn(self.tmp[i], axes=(0,1,2))
                 self.tmp_fftw[i].execute()
-                # self.tmp[i] *= self.exp_shift_fft
-                U = self.tmp[i] #* self.exp_shift_fft
-                # self.__dict__[f"U{idx+1}_acc_{ax[i]}"] += U*np.exp(1j*self.omega*t)*self.dt*weight*self.dV
+                U = self.tmp[i]
                 ne.evaluate(f"U{idx+1}_acc_{ax[i]} + U*exp(1j*omega*t)*dt*weight*dV",
                             global_dict=self.__dict__, out=self.__dict__[f"U{idx+1}_acc_{ax[i]}"])
-        # scalene_profiler.stop()
 
     def calculate_time_integral(self, t_grid, integration_method="trapezoid"):
         self.dt = t_grid[1] - t_grid[0]
@@ -127,7 +122,7 @@ class VacuumEmission(object):
         self.free_resources()
 
         # Results should be in U1_acc and U2_acc
-        prefactor = 1j*np.sqrt(alpha*self.kabs) / (2*pi)**1.5 / 45 / BS**3 * m_e**2 * c**3 / hbar**2
+        prefactor = -1j*np.sqrt(alpha*self.kabs) / (2*pi)**1.5 / 45 / BS**3 * m_e**2 * c**3 / hbar**2
         # Next time need to be careful with f-strings and brackets
         self.S1 = ne.evaluate(f"prefactor * ({self.I_11_expr} - {self.I_22_expr})",
                                global_dict=self.__dict__)
