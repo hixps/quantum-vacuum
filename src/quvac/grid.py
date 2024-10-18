@@ -3,6 +3,8 @@ This script implements Grid class calculating necessary variables
 for spatial grid and its Fourier counterpart
 '''
 
+from collections.abc import Iterable
+
 import numpy as np
 import numexpr as ne
 from scipy.constants import pi, c
@@ -148,8 +150,41 @@ def get_t_size(t_start, t_end, lam, grid_res=1):
 
 
 def create_dynamic_grid(fields_params, grid_params):
-    pass
+    # Create spatial box
+    collision_geometry = grid_params.get('collision_geometry', 'z')
 
+    w0_max = max([field.get('w0', 0) for field in fields_params])
+    tau_max = max([field.get('tau', 0) for field in fields_params])
+    lam_min = min([field.get('lam') for field in fields_params])
+    
+    transverse_size = w0_max * grid_params['transverse_factor']
+    longitudinal_size = tau_max * c * grid_params['longitudinal_factor']
+
+    box_xyz = [0, 0, 0]
+    for i,ax in enumerate('xyz'):
+        box_xyz[i] = (longitudinal_size if ax in collision_geometry 
+                      else transverse_size)
+    grid_params['box_xyz'] = box_xyz
+
+    # Number of spatial pts 
+    box_size = np.array(box_xyz) / 2
+    Nxyz_ = get_xyz_size(fields_params, box_size)
+    res = grid_params['spatial_resolution']
+    if isinstance(res, Iterable):
+        Nxyz = [Nx * res for Nx,res in zip(Nxyz_, res)]
+    elif type(res) in (int, float):
+        Nxyz = [Nx * res for Nx in Nxyz_]
+    grid_params['Nxyz'] = Nxyz
+
+    # Create temporal box
+    t0 = tau_max * grid_params['time_factor']
+    Nt = get_t_size(-t0/2, t0/2, lam_min)
+
+    # Number of temporal pts
+    grid_params['box_t'] = t0
+    grid_params['Nt'] = Nt * grid_params['time_resolution']
+    return grid_params
+    
 
 def setup_grids(fields_params, grid_params):
     '''
@@ -168,5 +203,5 @@ def setup_grids(fields_params, grid_params):
 
     t0 = grid_params["box_t"]
     Nt = grid_params["Nt"]
-    grid_t = np.linspace(-0.5*t0,0.5*t0,Nt)
+    grid_t = np.linspace(-0.5*t0, 0.5*t0, Nt)
     return grid_xyz, grid_t
