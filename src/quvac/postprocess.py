@@ -178,13 +178,10 @@ class VacuumEmissionAnalyzer:
         bgr_field = MaxwellMultiple(self.fields_params, self.grid_xyz)
         bgr_N_xyz = self.get_photon_spectrum_from_a12(bgr_field.a1, bgr_field.a2)
 
-        print(f'Background: {np.sum(bgr_N_xyz)}')
-
         # Interpolate on spherical grid
         _, bgr_N_sph = cartesian_to_spherical_array(bgr_N_xyz, self.grid_xyz,
                                                     spherical_grid=self.spherical_grid,
                                                     **interp_kwargs)
-        print(f'Background: {np.sum(bgr_N_sph)}')
         
         # Integrate over k if needed
         if discernibility == 'angular':
@@ -194,7 +191,6 @@ class VacuumEmissionAnalyzer:
     def get_discernible_signal(self, discernibility='angular'):
         # Calculate numerical background
         self.N_bgr = self.get_background(discernibility=discernibility)
-        print(f'Background: {np.sum(self.N_bgr)}')
 
         # Integrate signal spectrum if required and determine discernible regions
         if discernibility == 'angular':
