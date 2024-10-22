@@ -136,6 +136,8 @@ def quvac_simulation(ini_file, save_path=None, wisdom_file=None):
     # Load and parse ini yaml file
     ini_config = read_yaml(ini_file)
     fields_params = ini_config["fields"]
+    if isinstance(fields_params, dict):
+        fields_params = list(fields_params.values())
     grid_params = ini_config["grid"]
     perf_params = ini_config["performance"]
     

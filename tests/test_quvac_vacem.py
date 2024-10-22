@@ -71,7 +71,11 @@ def test_theta_beta_w0():
                 "phase0": 0,
             }
 
-            fields_params = [field_1, field_2]
+            # fields_params = [field_1, field_2]
+            fields_params = {
+                'field_1': field_1,
+                'field_2': field_2,
+            }
 
             # Set up grid parameters
             x0, y0, z0 = 15*w0, 15*w0, 6*c*tau

@@ -54,7 +54,10 @@ def test_analytic_maxwell():
         "phase0": 0,
     }
 
-    fields_params = [field_1, field_2]
+    fields_params = {
+        'field_1': field_1,
+        'field_2': field_2,
+    }
 
     # Set up grid parameters
     x0, y0, z0 = 12*w0, 12*w0, 5*c*tau
