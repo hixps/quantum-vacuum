@@ -117,7 +117,14 @@ def cluster_gridscan(ini_file, variables_file, save_path=None):
     max_jobs = cluster_params.get('max_jobs', 5)
     executor = submitit.AutoExecutor(folder=log_folder, cluster=cluster,
                                      slurm_array_parallelism=max_jobs, **sbatch_params)
+    print('Submitting jobs...')
     jobs = executor.map_array(quvac_simulation, ini_files)
+    print('Jobs submitted, waiting for results...')
+
+    # Wait till all jobs end
+    outputs = [job.result() for job in jobs]
+    print('Grid scan is finished!')
+
 
 
     
