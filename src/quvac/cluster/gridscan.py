@@ -1,6 +1,8 @@
+#!/usr/bin/env python3
 '''
 Script to run gridscan simulations on cluster with Slurm
 '''
+import argparse
 import itertools
 import os
 from pathlib import Path
@@ -14,10 +16,7 @@ from quvac.simulation import quvac_simulation
 from quvac.utils import write_yaml, read_yaml
 
 
-def create_parameter_grids(variables):
-    '''
-    Create a grid from (start, end , npts) specified for each parameter
-    '''
+def _create_grids(variables):
     variables_grid = {}
     for category_key,category in variables.items():
         variables_grid[category_key] = {}
@@ -25,6 +24,21 @@ def create_parameter_grids(variables):
             start, end, npts = param
             param_grid = list(np.linspace(start, end, npts))
             variables_grid[category_key][param_key] = param_grid
+    return variables_grid
+
+
+def create_parameter_grids(variables):
+    '''
+    Create a grid from (start, end , npts) specified for each parameter
+    '''
+    variables_grid = {}
+    fields = variables.get('fields', {})
+    if fields:
+        fields_grid = _create_grids(fields)
+        variables_grid['fields'] = fields_grid
+        variables.pop('fields')
+    params_grid = _create_grids(variables)
+    variables_grid.update(params_grid)
     return variables_grid
 
 
@@ -54,19 +68,36 @@ def create_ini_files_for_gridscan(ini_default, param_names,
         for name,param in zip(param_names,parametrization):
             category, param_name = name
             if category.startswith('field'):
-                ini_current['field'][category][param_name] = param
+                ini_current['fields'][category][param_name] = float(param)
             else:
-                ini_current[category][param_name] = param
+                ini_current[category][param_name] = float(param)
+
+            param = int(param) if np.isclose(param, int(param)) else param
             param_str = str(param) if isinstance(param, int) else f'{param:.2f}'
             param_str = f'{category}:{param_name}_{param_str}'
-            name_local = '#'.join(name_local, param_str)
+            name_local = '#'.join([name_local, param_str])
         save_path_local = os.path.join(save_path, name_local, 'ini.yml')
+        Path(os.path.dirname(save_path_local)).mkdir(parents=True, exist_ok=True)
         write_yaml(save_path_local, ini_current)
         ini_files.append(save_path_local)
     return ini_files
 
 
-def cluster_gridscan(ini_file, variables_file, save_path=None):
+def parse_args():
+    description = "Perform gridscan of quvac simulations"
+    argparser = argparse.ArgumentParser(description=description)
+    argparser.add_argument("--input", "-i", default=None,
+                           help="Input yaml file with field and grid params")
+    argparser.add_argument("--output", "-o", default=None,
+                           help="Path to save simulation data to")
+    argparser.add_argument("--variables", default=None,
+                           help="Yaml file with variable parameters")
+    argparser.add_argument("--wisdom", default='wisdom/fftw-wisdom',
+                           help="File to save pyfftw-wisdom")
+    return argparser.parse_args()
+
+
+def cluster_gridscan(ini_file, variables_file, save_path=None, wisdom_file=None):
     '''
     Launch a gridscan of quvac simulation for given default <ini>.yml file
     and <variables>.yml file
@@ -97,8 +128,12 @@ def cluster_gridscan(ini_file, variables_file, save_path=None):
         ini_default.pop('cluster')
     variables = read_yaml(variables_file)
 
+    create_grids = variables.get('create_grids', False)
+    if 'create_grids' in variables:
+        variables.pop('create_grids')
+
     # Create parameter grids if required
-    if variables.get('create_grids', False):
+    if create_grids:
         variables_grid = create_parameter_grids(variables)
     else:
         variables_grid = variables
@@ -116,7 +151,9 @@ def cluster_gridscan(ini_file, variables_file, save_path=None):
     sbatch_params = cluster_params.get('sbatch_params', DEFAULT_SUBMITIT_PARAMS)
     max_jobs = cluster_params.get('max_jobs', 5)
     executor = submitit.AutoExecutor(folder=log_folder, cluster=cluster,
-                                     slurm_array_parallelism=max_jobs, **sbatch_params)
+                                     slurm_array_parallelism=max_jobs)
+    if cluster == 'slurm':
+        executor.update_parameters(**sbatch_params)
     print('Submitting jobs...')
     jobs = executor.map_array(quvac_simulation, ini_files)
     print('Jobs submitted, waiting for results...')
@@ -126,6 +163,9 @@ def cluster_gridscan(ini_file, variables_file, save_path=None):
     print('Grid scan is finished!')
 
 
+if __name__ == '__main__':
+    args = parse_args()
+    cluster_gridscan(args.input, args.variables, args.output)
 
     
 

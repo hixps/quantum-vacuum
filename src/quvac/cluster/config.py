@@ -1,6 +1,6 @@
 DEFAULT_SUBMITIT_PARAMS = {
-    'partition': 'hij-jena',
+    'slurm_partition': 'hij-jena',
     'cpus_per_task': 16,
-    'slurm_mem': '100GB',
+    'slurm_mem': '2GB',
     'timeout_min': 240,
 }

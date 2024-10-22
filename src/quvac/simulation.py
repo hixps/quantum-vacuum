@@ -108,7 +108,7 @@ def parse_args():
     return argparser.parse_args()
 
 
-def quvac_simulation(ini_file, save_path=None, wisdom_file=None):
+def quvac_simulation(ini_file, save_path=None, wisdom_file='wisdom/fftw-wisdom'):
     '''
     Launch a single quvac simulation for given <ini>.yaml file
 
