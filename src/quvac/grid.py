@@ -112,7 +112,7 @@ def get_xyz_size(fields, box_size, grid_res=1, equal_resolution=False):
     Calculates necessary spatial resolution
     
     fields: list of dicts
-        List of fields' parameters
+        List of fields parameters
     box_size: typing.Sequence (e.g., list, np.array)
         Box size for 3 dimensions
     grid_res: float
@@ -120,6 +120,8 @@ def get_xyz_size(fields, box_size, grid_res=1, equal_resolution=False):
     equal_resolution: bool
         Flag for equal resolution for every dimension
     '''
+    if isinstance(fields, dict):
+        fields = list(fields.values())
     box_size = np.array(box_size)
 
     kmax = np.zeros((3,))
@@ -193,6 +195,8 @@ def setup_grids(fields_params, grid_params):
     dynamically from field parameters (e.g., tau, w0)
     '''
     if grid_params['mode'] == 'dynamic':
+        if isinstance(fields_params, dict):
+            fields_params = list(fields_params.values())
         grid_params = create_dynamic_grid(fields_params, grid_params)
     
     x0, y0, z0 = grid_params['box_xyz']

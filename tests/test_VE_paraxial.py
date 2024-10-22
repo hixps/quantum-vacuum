@@ -52,7 +52,11 @@ def test_two_paraxial_gaussians():
         "phase0": 0,
     }
 
-    fields_params = [field_1, field_2]
+    fields_params = {
+        'field_1': field_1,
+        'field_2': field_2,
+    }
+    fields_params = list(fields_params.values())
 
     x0, y0, z0 = 5*c*tau, 12*w0, 5*c*tau
     box_size = np.array([x0, y0, z0])
@@ -77,7 +81,7 @@ def test_two_paraxial_gaussians():
     vacem.calculate_amplitudes(t_grid, save_path=amplitude_path)
 
     save_path = 'data/test/paraxial/2_paraxials.npz'
-    analyzer = VacuumEmissionAnalyzer(amplitude_path, save_path)
+    analyzer = VacuumEmissionAnalyzer(fields_params, amplitude_path, save_path)
     angles = (0., 0., 0.)
     analyzer.get_spectra(angles)
     N_signal_num = analyzer.N_tot
