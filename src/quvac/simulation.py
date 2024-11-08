@@ -15,7 +15,7 @@ import numpy as np
 import numexpr as ne
 import pyfftw
 
-from quvac.field.external_field import ExternalField
+from quvac.field.external_field import ExternalField, ProbePumpField
 from quvac.integrator.vacuum_emission import VacuumEmission
 from quvac.grid import setup_grids
 from quvac.postprocess import VacuumEmissionAnalyzer
@@ -140,6 +140,13 @@ def quvac_simulation(ini_file, save_path=None, wisdom_file='wisdom/fftw-wisdom')
         fields_params = list(fields_params.values())
     grid_params = ini_config["grid"]
     perf_params = ini_config["performance"]
+
+    # Determine integrator type
+    integrator_params = ini_config.get('integrator', {})
+    integrator_type = integrator_params.get('type', 'vacuum_emission')
+    channels = integrator_type.endswith('channels')
+    if channels:
+        probe_pump_idx = integrator_params.get('probe_pump_idx', None)
     
     # Determine postprocess steps
     postprocess_params = ini_config.get('postprocess', {})
@@ -164,12 +171,16 @@ def quvac_simulation(ini_file, save_path=None, wisdom_file='wisdom/fftw-wisdom')
 
     # Field setup
     time_start = time.perf_counter()
-    field = ExternalField(fields_params, grid_xyz, nthreads=nthreads)
+    if not channels:
+        field = ExternalField(fields_params, grid_xyz, nthreads=nthreads)
+    else:
+        field = ProbePumpField(fields_params, grid_xyz, probe_pump_idx=probe_pump_idx,
+                               nthreads=nthreads)
     time_field_setup = time.perf_counter()
     logger.info("Fields are set up")
 
     # Calculate amplitudes
-    vacem = VacuumEmission(field, grid_xyz, nthreads)
+    vacem = VacuumEmission(field, grid_xyz, nthreads, channels=channels)
     time_vacem_setup = time.perf_counter()
     vacem.calculate_amplitudes(grid_t, save_path=amplitudes_file)
     time_amplitudes = time.perf_counter()

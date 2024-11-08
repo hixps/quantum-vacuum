@@ -90,8 +90,8 @@ class ProbePumpField(Field):
         self.probe_field = ExternalField(probe_params, grid, nthreads=nthreads)
         self.pump_field = ExternalField(pump_params, grid, nthreads=nthreads)
             
-    def calculate_probe_pump_fields(self, t, E_probe=None, B_probe=None,
-                                    E_pump=None, B_pump=None):
+    def calculate_field(self, t, E_probe=None, B_probe=None,
+                        E_pump=None, B_pump=None):
         self.probe_field.calculate_field(t, E_out=E_probe, B_out=B_probe)
         self.pump_field.calculate_field(t, E_out=E_pump, B_out=B_pump)
         return (E_probe, B_probe), (E_pump, B_pump)
