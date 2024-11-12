@@ -55,22 +55,22 @@ performance:
 # timings structure
 performance_str = '''
 Timings:
-=================================================
+====================================================
 Field setup:               {:>15s}
 Vacem setup:               {:>15s}
 Amplitudes calculation:    {:>15s}
 Postprocess:               {:>15s}
--------------------------------------------------
+----------------------------------------------------
 Per iteration:             {:>15s}  
--------------------------------------------------
+----------------------------------------------------
 Total:                     {:>15s}
-=================================================
+====================================================
 
 Memory (max usage):
-=================================================
+====================================================
 Amplitudes calculation:    {:>15s}
 Total:                     {:>15s}
-=================================================
+====================================================
 '''
 
 # grid params
@@ -98,6 +98,13 @@ Field constructor:
 {}
 ====================================================
 '''
+
+# pump probe constructor
+pump_probe_str = '''Probe:
+{}
+----------------------------------------------------
+Pump:
+{}'''
 
 
 def get_grid_params(grid_xyz, grid_t):
@@ -148,13 +155,7 @@ def get_field_info(field):
     elif isinstance(field, ProbePumpField):
         pump_str = unpack_field_info(field.pump_field.fields)
         probe_str = unpack_field_info(field.probe_field.fields)
-        field_str = (
-        'Probe:\n'
-        f'{probe_str}\n'
-        '----------------------------------------------------\n'
-        'Pump:\n'
-        f'{pump_str}'
-        )
+        field_str = pump_probe_str.format(probe_str, pump_str)
     field_print = field_constructor_str.format(field_str)
     return field_print
 
