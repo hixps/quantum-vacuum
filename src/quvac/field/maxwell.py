@@ -83,8 +83,8 @@ class MaxwellMultiple(MaxwellField):
 
         self.a1, self.a2 = [pyfftw.zeros_aligned(self.grid_shape,  dtype='complex128')
                             for _ in range(2)]
-        fields = [fields] if isinstance(fields, dict) else fields
-        for field in fields:
+        self.fields = [fields] if isinstance(fields, dict) else fields
+        for field in self.fields:
             a1, a2 = self.get_a12_from_field(field)
             self.a1 += a1
             self.a2 += a2

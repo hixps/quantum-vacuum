@@ -16,6 +16,7 @@ import numexpr as ne
 import pyfftw
 
 from quvac.field.external_field import ExternalField, ProbePumpField
+from quvac.field.maxwell import SPATIAL_MODEL_FIELDS, MaxwellMultiple
 from quvac.integrator.vacuum_emission import VacuumEmission
 from quvac.grid import setup_grids
 from quvac.postprocess import VacuumEmissionAnalyzer
@@ -71,6 +72,91 @@ Amplitudes calculation:    {:>15s}
 Total:                     {:>15s}
 =================================================
 '''
+
+# grid params
+grid_str = '''
+Grid:
+====================================================
+Space
+
+Number of points (x,y,z):  {:>25}
+Box for x axis:            {:>25}
+Box for y axis:            {:>25}
+Box for z axis:            {:>25}
+----------------------------------------------------
+Time
+
+Number of points:          {:>25}
+Box:                       {:>25}
+====================================================
+'''
+
+# field constructor
+field_constructor_str = '''
+Field constructor:
+====================================================
+{}
+====================================================
+'''
+
+
+def get_grid_params(grid_xyz, grid_t):
+    nx, ny, nz = grid_xyz.grid_shape
+    grid_xyz_size = f'({nx}, {ny}, {nz})'
+    x, y, z = grid_xyz.grid
+    x_start, x_end = x[0]*1e6, x[-1]*1e6
+    x_box = f'({x_start:.2f}, {x_end:.2f}) micron'
+    y_start, y_end = y[0]*1e6, y[-1]*1e6
+    y_box = f'({y_start:.2f}, {y_end:.2f}) micron'
+    z_start, z_end = z[0]*1e6, z[-1]*1e6
+    z_box = f'({z_start:.2f}, {z_end:.2f}) micron'
+
+    grid_t_size = len(grid_t)
+    t_start, t_end = grid_t[0]*1e15, grid_t[-1]*1e15
+    t_box = f'({t_start:.2f}, {t_end:.2f}) fs'
+
+    grid_print = grid_str.format(grid_xyz_size,
+                                 x_box,
+                                 y_box,
+                                 z_box,
+                                 grid_t_size,
+                                 t_box)
+    return grid_print
+
+
+def get_multiple_maxwell_info(field):
+    fields = field.fields
+    field_types = [f['field_type'] for f in fields]
+    model_fields = [SPATIAL_MODEL_FIELDS.get(field_type, None)
+                    for field_type in field_types]
+    model_field_names = [f.__name__ if f else '' for f in model_fields]
+    field_info = [f'    {field_type}: {model_field_name}'
+                  for field_type, model_field_name in zip(field_types, model_field_names)]
+    return ('MaxwellMultiple:\n'
+            f'{'\n'.join(field_info)}')
+
+
+def unpack_field_info(fields):
+    field_str = [f.__class__ if not isinstance(f, MaxwellMultiple)
+                 else get_multiple_maxwell_info(f) for f in fields]
+    return '\n'.join(field_str)
+
+
+def get_field_info(field):
+    if isinstance(field, ExternalField):
+        field_str = unpack_field_info(field.fields)
+    elif isinstance(field, ProbePumpField):
+        pump_str = unpack_field_info(field.pump_field.fields)
+        probe_str = unpack_field_info(field.probe_field.fields)
+        field_str = (
+        'Probe:\n'
+        f'{probe_str}\n'
+        '----------------------------------------------------\n'
+        'Pump:\n'
+        f'{pump_str}'
+        )
+    field_print = field_constructor_str.format(field_str)
+    return field_print
 
 
 def get_performance_stats(perf_stats):
@@ -130,8 +216,8 @@ def quvac_simulation(ini_file, save_path=None, wisdom_file='wisdom/fftw-wisdom')
     
     # Setup logger
     logger_file = os.path.join(save_path, 'simulation.log')
-    logging.basicConfig(filename=logger_file, encoding='utf-8', level=logging.DEBUG,
-                        format=f'%(asctime)s %(message)s')
+    logging.basicConfig(filename=logger_file, filemode='w', encoding='utf-8',
+                        level=logging.DEBUG, format=f'%(asctime)s %(message)s')
 
     # Load and parse ini yaml file
     ini_config = read_yaml(ini_file)
@@ -169,6 +255,9 @@ def quvac_simulation(ini_file, save_path=None, wisdom_file='wisdom/fftw-wisdom')
     grid_xyz, grid_t = setup_grids(fields_params, grid_params)
     grid_xyz.get_k_grid()
     logger.info("Grids are created")
+    grid_print = get_grid_params(grid_xyz, grid_t)
+    print(grid_print)
+    logger.info(grid_print)
 
     # Field setup
     time_start = time.perf_counter()
@@ -179,6 +268,10 @@ def quvac_simulation(ini_file, save_path=None, wisdom_file='wisdom/fftw-wisdom')
                                nthreads=nthreads)
     time_field_setup = time.perf_counter()
     logger.info("Fields are set up")
+    # log what types of fields were used in the simulation
+    field_print = get_field_info(field)
+    logger.info(field_print)
+    print(field_print)
 
     # Calculate amplitudes
     vacem = VacuumEmission(field, grid_xyz, nthreads, channels=channels)
