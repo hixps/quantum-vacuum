@@ -9,10 +9,7 @@ from pathlib import Path
 import numpy as np
 
 from quvac.utils import read_yaml, write_yaml
-from config import DEFAULT_CONFIG_PATH
-
-
-SCRIPT_PATH = 'src/quvac/cluster/gridscan.py'
+from config import DEFAULT_CONFIG_PATH, GRIDSCAN_SCRIPT
 
 
 def test_gridscan():
@@ -43,7 +40,7 @@ def test_gridscan():
     write_yaml(variables_file, variables_data)
 
     # Launch simulation
-    status = os.system(f"{SCRIPT_PATH} --input {ini_file} --variables {variables_file}")
+    status = os.system(f"{GRIDSCAN_SCRIPT} --input {ini_file} --variables {variables_file}")
     assert status == 0, "Script execution did not finish successfully"
 
     folders = [f'#field_2:beta_{beta}' for beta in beta_arr]

@@ -11,85 +11,23 @@ import numpy as np
 from scipy.constants import c
 from ax.service.ax_client import AxClient
 
-from quvac.utils import write_yaml
+from quvac.utils import read_yaml, write_yaml
 from quvac.cluster.optimization import gather_trials_data
+from config import DEFAULT_CONFIG_PATH, OPTIMIZATION_SCRIPT
 
-
-SCRIPT_PATH = 'src/quvac/cluster/optimization.py'
 
 @pytest.mark.slow
 def test_optimization():
-    # Define field parameters
-    tau = 25e-15
-    W = 25
-    lam = 0.8e-6
-    w01 = 1*lam
-    w02 = 1*lam
-    theta = 180
-    beta = 90
-
-    mode = 'maxwell'
-
-    # Define fields
-    field_1 = {
-        "field_type": f"paraxial_gaussian_{mode}",
-        "focus_x": [0.,0.,0.],
-        "focus_t": 0.,
-        "theta": 0,
-        "phi": 0,
-        "beta": 0,
-        "lam": lam,
-        "w0": w01,
-        "tau": tau,
-        "W": W,
-        "phase0": 0,
-    }
-
-    field_2 = {
-        "field_type": f"paraxial_gaussian_{mode}",
-        "focus_x": [0.,0.,0.],
-        "focus_t": 0.,
-        "theta": theta,
-        "phi": 0,
-        "beta": beta,
-        "lam": lam,
-        "w0": w02,
-        "tau": tau,
-        "W": W,
-        "phase0": 0,
-    }
-
-    fields_params = {
-        'field_1': field_1,
-        'field_2': field_2,
-    }
+    ini_data = read_yaml(DEFAULT_CONFIG_PATH)
 
     path = 'data/test/test_optimization'
     Path(path).mkdir(parents=True, exist_ok=True)
 
-    ini_data = {
-        'fields': fields_params,
-        'grid': {
-            'mode': 'dynamic',
-            'collision_geometry': 'z',
-            'transverse_factor': 15,
-            'longitudinal_factor': 6,
-            'time_factor': 4,
-            'spatial_resolution': 1,
-            'time_resolution': 1,
-        },
-        'performance': {
-            'nthreads': 8
-        },
-        'postprocess': {
-            'calculate_spherical': True,
-            'calculate_discernible': True,
-        },
-        'scales': {
-            
-        },
-        'save_path': path
-    }
+    # Modify some parameters
+    ini_data['postprocess']['calculate_spherical'] = True
+    ini_data['postprocess']['calculate_discernible'] = True
+    ini_data['scales'] = {}
+    ini_data['save_path'] = path
 
     optimization_data = {
         'name': '2_pulses_beta',
@@ -112,7 +50,7 @@ def test_optimization():
     write_yaml(optimization_file, optimization_data)
 
     # Launch simulation
-    status = os.system(f"{SCRIPT_PATH} --input {ini_file} --optimization {optimization_file}")
+    status = os.system(f"{OPTIMIZATION_SCRIPT} --input {ini_file} --optimization {optimization_file}")
     assert status == 0, "Script execution did not finish successfully"
 
     client_json = os.path.join(path, 'experiment.json')

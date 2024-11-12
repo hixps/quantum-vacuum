@@ -4,6 +4,9 @@ with script in several scenarios:
 1) test_simulation: default collision scenario
 2) test_mixed_fields: one field is analytic, another is maxwell
 3) test_spherical: interpolation of signal spectrum on spherical grid
+4) test_discernible: calculate discernible signal and compare that it is 
+                     close to paper result
+5) test_channels: test channel separation in the integrator
 '''
 
 import os
@@ -14,10 +17,7 @@ import numpy as np
 
 from quvac.analytic_scalings import get_two_paraxial_scaling
 from quvac.utils import read_yaml, write_yaml
-from config import DEFAULT_CONFIG_PATH
-
-
-SCRIPT_PATH = 'src/quvac/simulation.py'
+from config import DEFAULT_CONFIG_PATH, SIMULATION_SCRIPT
 
 
 def run_test_simulation(path, ini_data):
@@ -27,7 +27,7 @@ def run_test_simulation(path, ini_data):
     write_yaml(ini_file, ini_data)
 
     # Launch simulation
-    status = os.system(f"{SCRIPT_PATH} --input {ini_file}")
+    status = os.system(f"{SIMULATION_SCRIPT} --input {ini_file}")
     assert status == 0, "Script execution did not finish successfully"
 
 
