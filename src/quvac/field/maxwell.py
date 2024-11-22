@@ -3,6 +3,7 @@ This script provides basic linear Maxwell propagation class
 and a particular implementation of GaussianMaxwell
 '''
 import logging
+import os
 
 import numpy as np
 import numexpr as ne
@@ -26,63 +27,79 @@ class MaxwellField(Field):
     For such fields the initial field distribution (spectral coefficients)
     at a certain time step is given with analytic expression or from file.
     For later time steps the field is propagated according to linear Maxwell 
-    equations 
+    equations
+
+    Parameters:
+    -----------
+    grid: quvac.grid.GridXYZ
+        spatial and spectral grid
     '''
-    def __init__(self, grid):
+    def __init__(self, grid, nthreads=None):
         self.grid_xyz = grid
         self.__dict__.update(self.grid_xyz.__dict__)
 
-        self.omega = self.kabs*c
+        self.nthreads = nthreads if nthreads else os.cpu_count()
+
+        self.c = c
         self.norm_ifft = self.dVk / (2.*pi)**3
         for ax in 'xyz':
-            self.__dict__[f'Ef{ax}_expr'] = f"(e1{ax}*a1 + e2{ax}*a2)"
-            self.__dict__[f'Bf{ax}_expr'] = f"(e2{ax}*a1 - e1{ax}*a2)"
+            self.__dict__[f'Ef{ax}_expr'] = f"(e1{ax}*a1t + e2{ax}*a2t)"
+            self.__dict__[f'Bf{ax}_expr'] = f"(e2{ax}*a1t - e1{ax}*a2t)"
+        # Collect all expressions in one array
+        self.EB_expr = [self.__dict__[f'Ef{ax}_expr'] for ax in 'xyz']
+        self.EB_expr += [self.__dict__[f'Bf{ax}_expr'] for ax in 'xyz']
 
     def allocate_ifft(self):
-        self.EB = [pyfftw.zeros_aligned(self.grid_shape,  dtype='complex128')
+        self.EB = [pyfftw.zeros_aligned(self.grid_shape, dtype='complex128')
                    for _ in range(6)]
-        self.EB_ = [pyfftw.zeros_aligned(self.grid_shape,  dtype='complex128')
-                   for _ in range(6)]
+        self.a1t, self.a2t = [np.zeros(self.grid_shape, dtype='complex128')
+                              for _ in range(2)]
         # pyfftw scheme
         self.EB_fftw = [pyfftw.FFTW(a, a, axes=(0, 1, 2),
                                     direction='FFTW_BACKWARD',
                                     flags=('FFTW_MEASURE', ),
-                                    threads=1)
+                                    threads=self.nthreads)
                         for a in self.EB]
-
-    def get_fourier_fields(self):
-        for i,field in enumerate('EB'):
-            for j,ax in enumerate('xyz'):
-                idx = 3*i + j
-                ne.evaluate(self.__dict__[f'{field}f{ax}_expr'], global_dict=self.__dict__,
-                            out=self.EB_[idx])
 
     def calculate_field(self, t, E_out=None, B_out=None):
         if E_out is None:
             E_out = [np.zeros(self.grid_shape, dtype=np.complex128) for _ in range(3)]
             B_out = [np.zeros(self.grid_shape, dtype=np.complex128) for _ in range(3)]
         
+        # Calculate a1,a2 at time t
+        ne.evaluate('exp(-1.j*kabs*c*(t-t0)) * a1 * norm_ifft',
+                    global_dict=self.__dict__, out=self.a1t)
+        ne.evaluate('exp(-1.j*kabs*c*(t-t0)) * a2 * norm_ifft',
+                    global_dict=self.__dict__, out=self.a2t)
         # Calculate fourier of fields at time t and transform back to 
         # spatial domain
-        prefactor = ne.evaluate("exp(-1.j*omega*(t-t0))", global_dict=self.__dict__)
         for idx in range(6):
-            ne.evaluate(f"prefactor * EB", global_dict={'EB': self.EB_[idx]},
-                        out=self.EB[idx])
+            ne.evaluate(self.EB_expr[idx], global_dict=self.__dict__, out=self.EB[idx])
             self.EB_fftw[idx].execute()
-        
-        for idx in range(3):
-            E_out[idx] += self.EB[idx] * self.norm_ifft
-            B_out[idx] += self.EB[3+idx] * self.norm_ifft
+            
+            if idx < 3:
+                E_out[idx] += self.EB[idx]
+            else:
+                B_out[idx-3] += self.EB[idx]
         return E_out, B_out
 
 
 class MaxwellMultiple(MaxwellField):
     '''
-    Calculate spectral coefficients from several fields and
-    propagate them
+    Combine spectral coefficients from several fields and
+    propagate them as one field
+
+    Parameters:
+    -----------
+    fields: dict | list of dicts
+        Parameters of fields
+    grid: quvac.grid.GridXYZ
+        spatial and spectral grid
+    nthreads: int (optional)
+        number of threads to use for pyfftw
     '''
     def __init__(self, fields, grid, nthreads=None):
-        super().__init__(grid)
+        super().__init__(grid, nthreads)
 
         self.a1, self.a2 = [pyfftw.zeros_aligned(self.grid_shape,  dtype='complex128')
                             for _ in range(2)]
@@ -94,7 +111,6 @@ class MaxwellMultiple(MaxwellField):
             self.a2 += a2
 
         self.allocate_ifft()
-        self.get_fourier_fields()
 
     def get_a12_from_field(self, field_params):
         field_type = field_params['field_type']
@@ -104,6 +120,9 @@ class MaxwellMultiple(MaxwellField):
             ini_field = cls(field_params, self.grid_xyz)
             self.t0 = ini_field.t0
             a1, a2 = ini_field.get_a12(ini_field.t0)
+        else:
+            raise NotImplementedError(f"`{field_type}` is not implemented, use"
+                                      f"one of {list(SPATIAL_MODEL_FIELDS.keys())}")
         return a1, a2
 
     def calculate_field(self, t, E_out=None, B_out=None):

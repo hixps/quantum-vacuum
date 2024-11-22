@@ -1,6 +1,12 @@
 '''
-This script implements Grid class calculating necessary variables
-for spatial grid and its Fourier counterpart
+This script implements:
+1) GridXYZ class that calculates necessary variables
+   for spatial grid and its Fourier counterpart;
+2) helper function `setup_grids` that automatically 
+   creates grids either dynamically or from given grid params
+
+Dynamical grid creation (`get_kmax_grid`, `get_xyz_size`,
+`get_t_size` were originally implemented by Alexander Blinne)
 '''
 
 from collections.abc import Iterable
@@ -13,7 +19,12 @@ import pyfftw
 
 class GridXYZ(object):
     '''
-    Calculates space grid and Fourier counterpart
+    Calculates space grid and its Fourier counterpart
+
+    Parameters:
+    -----------
+    grid: (np.array, np.array, np.array) = (x, y, z)
+        Spatial grid for field discretization
     '''
     def __init__(self, grid):
         # Define spatial grid
@@ -23,7 +34,6 @@ class GridXYZ(object):
         self.xyz = self.x, self.y, self.z = np.meshgrid(*grid, indexing='ij', sparse=True)
         self.dxyz = tuple(ax[1]-ax[0] for ax in grid)
         self.dV = np.prod(self.dxyz)
-        self.k_grid_calculated = False
 
     def get_k_grid(self):
         for i,ax in enumerate('xyz'):
@@ -46,13 +56,14 @@ class GridXYZ(object):
 
         self.e2x = ne.evaluate("where((kx==0) & (ky==0), 0.0, -ky / kperp)")
         self.e2y = ne.evaluate("where((kx==0) & (ky==0), 2*(kz>0)-1, kx / kperp)")
-        # self.e2y = ne.evaluate("where((kx==0) & (ky==0), 1.0, kx / kperp)")
         self.e2z = 0.
-        
-        self.k_grid_calculated = True
 
 
 def get_ek(theta, phi):
+    '''
+    Calculate k-vector for given spherical angles
+    theta and phi
+    '''
     ek = np.array([np.sin(theta) * np.cos(phi),
                    np.sin(theta) * np.sin(phi),
                    np.cos(theta)])
@@ -60,6 +71,10 @@ def get_ek(theta, phi):
 
 
 def get_pol_basis(theta, phi):
+    '''
+    Calculate polarization basis for given spherical angles
+    theta and phi
+    '''
     e1 = np.array([np.cos(theta) * np.cos(phi),
                    np.cos(theta) * np.sin(phi),
                    -np.sin(theta)])
@@ -73,7 +88,9 @@ def get_kmax_grid(field_params):
     '''
     Calculates maximum k-vector along every dimension
 
-    Laser params: dict
+    Parameters:
+    -----------
+    field_params: dict
         Required keys: lam, tau, w0/w0x, theta, phi
         theta, phi in degrees
     '''
@@ -112,14 +129,17 @@ def get_xyz_size(fields, box_size, grid_res=1, equal_resolution=False):
     '''
     Calculates necessary spatial resolution
     
-    fields: list of dicts
-        List of fields parameters
+    Parameters:
+    -----------
+    fields: dict | list of dicts
+        Parameters of participating fields
     box_size: typing.Sequence (e.g., list, np.array)
         Box size for 3 dimensions
     grid_res: float
         Controls the resolution
     equal_resolution: bool
-        Flag for equal resolution for every dimension
+        Flag if equal resolution in every dimension
+        is needed
     '''
     if isinstance(fields, dict):
         fields = list(fields.values())
@@ -142,6 +162,8 @@ def get_t_size(t_start, t_end, lam, grid_res=1):
     '''
     Calculates necessary temporal resolution
     
+    Parameters:
+    -----------
     t_start, t_end: floats
         Start time, end time
     lam: float
@@ -154,6 +176,19 @@ def get_t_size(t_start, t_end, lam, grid_res=1):
 
 
 def create_dynamic_grid(fields_params, grid_params):
+    '''
+    Dynamically create grids from given laser parameters.
+    One should be careful with this option.
+
+    Parameters:
+    -----------
+    fields_params: list of dicts
+        Parameters of participating fields
+    grid_params: dict
+        Grid parameters
+        Required keys: transverse_factor, longitudinal_factor, time_factor,
+        spatial_resolution, time_resolution
+    '''
     # Create spatial box
     collision_geometry = grid_params.get('collision_geometry', 'z')
 
@@ -194,6 +229,14 @@ def setup_grids(fields_params, grid_params):
     '''
     Create spatial and temporal grids from given sizes or
     dynamically from field parameters (e.g., tau, w0)
+
+    Parameters:
+    -----------
+    fields_params: list of dicts
+        Parameters of participating fields
+    grid_params: dict
+        Grid parameters
+        Required_keys: mode (other keys depend on mode)
     '''
     if grid_params['mode'] == 'dynamic':
         if isinstance(fields_params, dict):
@@ -207,7 +250,14 @@ def setup_grids(fields_params, grid_params):
     z = np.linspace(-0.5*z0, 0.5*z0, Nz, endpoint=Nz%2)
     grid_xyz = GridXYZ((x, y, z))
 
-    t0 = grid_params["box_t"]
     Nt = grid_params["Nt"]
-    grid_t = np.linspace(-0.5*t0, 0.5*t0, Nt)
+    box_t = grid_params["box_t"]
+    # Allow non-symmetric time-grids
+    if isinstance(box_t, float):
+        Nt += int(1 - Nt%2)
+        t0 = box_t
+        grid_t = np.linspace(-0.5*t0, 0.5*t0, Nt, endpoint=True)
+    else:
+        t_start, t_end = box_t
+        grid_t = np.linspace(t_start, t_end, Nt, endpoint=True)
     return grid_xyz, grid_t
