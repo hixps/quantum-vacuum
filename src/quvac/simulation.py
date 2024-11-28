@@ -125,7 +125,8 @@ def quvac_simulation(ini_file, save_path=None, wisdom_file='wisdom/fftw-wisdom')
     # Set up number of threads
     nthreads = perf_params.get('nthreads', os.cpu_count())
     ne.set_num_threads(nthreads)
-    nthreads = 1
+    pyfftw_threads = perf_params.get('pyfftw_threads', nthreads)
+    # nthreads = 1
     # pyfftw.config.NUM_THREADS = nthreads
 
     # Check if it's a test run to plan resources
@@ -155,10 +156,10 @@ def quvac_simulation(ini_file, save_path=None, wisdom_file='wisdom/fftw-wisdom')
     '====================================================')
     time_start = time.perf_counter()
     if not channels:
-        field = ExternalField(fields_params, grid_xyz, nthreads=nthreads)
+        field = ExternalField(fields_params, grid_xyz, nthreads=pyfftw_threads)
     else:
         field = ProbePumpField(fields_params, grid_xyz, probe_pump_idx=probe_pump_idx,
-                               nthreads=nthreads)
+                               nthreads=pyfftw_threads)
     time_field_setup = time.perf_counter()
     logger.info('====================================================\n')
     logger.info("MILESTONE: Fields are set up")
@@ -172,7 +173,7 @@ def quvac_simulation(ini_file, save_path=None, wisdom_file='wisdom/fftw-wisdom')
                        f'    Probe idx: {probe_pump['probe']}\n'
                        f'    Pump  idx: {probe_pump['pump']}')
     logger.info(log_message)
-    vacem = VacuumEmission(field, grid_xyz, nthreads=nthreads, channels=channels)
+    vacem = VacuumEmission(field, grid_xyz, nthreads=pyfftw_threads, channels=channels)
     time_vacem_setup = time.perf_counter()
     time_integral = vacem.calculate_amplitudes(grid_t, save_path=amplitudes_file)
     time_amplitudes = time.perf_counter()
