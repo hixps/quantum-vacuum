@@ -136,6 +136,7 @@ def quvac_simulation(ini_file, save_path=None, wisdom_file='wisdom/fftw-wisdom')
         config.FDTYPE = 'float64'
         config.CDTYPE = 'complex128'
     use_wisdom = perf_params.get('use_wisdom', True)
+    logger.info(f'Using {precision} precision')
 
 
     # Check if it's a test run to plan resources
