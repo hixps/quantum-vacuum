@@ -16,6 +16,8 @@ import numexpr as ne
 from scipy.constants import pi, c
 import pyfftw
 
+from quvac import config
+
 
 class GridXYZ(object):
     '''
@@ -37,8 +39,8 @@ class GridXYZ(object):
 
     def get_k_grid(self):
         for i,ax in enumerate('xyz'):
-            self.__dict__[f'k{ax}'] = 2.*pi*np.fft.fftfreq(self.grid_shape[i],
-                                                               self.dxyz[i]) 
+            self.__dict__[f'k{ax}'] = 2*pi*np.fft.fftfreq(self.grid_shape[i],
+                                                          self.dxyz[i]).astype(config.FDTYPE) 
         self.kgrid = tuple((self.kx, self.ky, self.kz))
         self.kgrid_shifted = tuple(np.fft.fftshift(k) for k in (self.kx, self.ky, self.kz))
         self.dkxkykz = [ax[1]-ax[0] for ax in self.kgrid]
@@ -50,13 +52,13 @@ class GridXYZ(object):
         kperp = ne.evaluate("sqrt(kx**2 + ky**2)")
 
         # Polarization vectors
-        self.e1x = ne.evaluate("where((kx==0) & (ky==0), 1.0, kx * kz / (kperp*kabs))")
-        self.e1y = ne.evaluate("where((kx==0) & (ky==0), 0.0, ky * kz / (kperp*kabs))")
-        self.e1z = ne.evaluate("where((kx==0) & (ky==0), 0.0, -kperp / kabs)")
+        self.e1x = ne.evaluate("where((kx==0) & (ky==0), 1, kx * kz / (kperp*kabs))")
+        self.e1y = ne.evaluate("where((kx==0) & (ky==0), 0, ky * kz / (kperp*kabs))")
+        self.e1z = ne.evaluate("where((kx==0) & (ky==0), 0, -kperp / kabs)")
 
-        self.e2x = ne.evaluate("where((kx==0) & (ky==0), 0.0, -ky / kperp)")
+        self.e2x = ne.evaluate("where((kx==0) & (ky==0), 0, -ky / kperp)")
         self.e2y = ne.evaluate("where((kx==0) & (ky==0), 2*(kz>0)-1, kx / kperp)")
-        self.e2z = 0.
+        self.e2z = 0
 
 
 def get_ek(theta, phi):
@@ -245,9 +247,9 @@ def setup_grids(fields_params, grid_params):
     
     x0, y0, z0 = grid_params['box_xyz']
     Nx, Ny, Nz = grid_params['Nxyz']
-    x = np.linspace(-0.5*x0, 0.5*x0, Nx, endpoint=Nx%2)
-    y = np.linspace(-0.5*y0, 0.5*y0, Ny, endpoint=Ny%2)
-    z = np.linspace(-0.5*z0, 0.5*z0, Nz, endpoint=Nz%2)
+    x = np.linspace(-0.5*x0, 0.5*x0, Nx, endpoint=Nx%2, dtype=config.FDTYPE)
+    y = np.linspace(-0.5*y0, 0.5*y0, Ny, endpoint=Ny%2, dtype=config.FDTYPE)
+    z = np.linspace(-0.5*z0, 0.5*z0, Nz, endpoint=Nz%2, dtype=config.FDTYPE)
     grid_xyz = GridXYZ((x, y, z))
 
     Nt = grid_params["Nt"]
@@ -256,8 +258,8 @@ def setup_grids(fields_params, grid_params):
     if isinstance(box_t, float):
         Nt += int(1 - Nt%2)
         t0 = box_t
-        grid_t = np.linspace(-0.5*t0, 0.5*t0, Nt, endpoint=True)
+        grid_t = np.linspace(-0.5*t0, 0.5*t0, Nt, endpoint=True, dtype=config.FDTYPE)
     else:
         t_start, t_end = box_t
-        grid_t = np.linspace(t_start, t_end, Nt, endpoint=True)
+        grid_t = np.linspace(t_start, t_end, Nt, endpoint=True, dtype=config.FDTYPE)
     return grid_xyz, grid_t

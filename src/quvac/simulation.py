@@ -14,6 +14,7 @@ import resource
 import numexpr as ne
 import pyfftw
 
+from quvac import config
 from quvac.log import (simulation_start_str, simulation_end_str,
                        get_grid_params, get_performance_stats,
                        get_postprocess_info, test_run_str)
@@ -126,15 +127,23 @@ def quvac_simulation(ini_file, save_path=None, wisdom_file='wisdom/fftw-wisdom')
     nthreads = perf_params.get('nthreads', os.cpu_count())
     ne.set_num_threads(nthreads)
     pyfftw_threads = perf_params.get('pyfftw_threads', nthreads)
-    # nthreads = 1
-    # pyfftw.config.NUM_THREADS = nthreads
+    # Set up global precision for calculations
+    precision = perf_params.get('precision', 'float64')
+    if precision == 'float32':
+        config.FDTYPE = 'float32'
+        config.CDTYPE = 'complex64'
+    else:
+        config.FDTYPE = 'float64'
+        config.CDTYPE = 'complex128'
+    use_wisdom = perf_params.get('use_wisdom', True)
+
 
     # Check if it's a test run to plan resources
     test_run = perf_params.get('test_run', False)
     test_timesteps = perf_params.get('test_timesteps', 5)
 
     # Load fftw-wisdom if possible
-    if os.path.exists(wisdom_file):
+    if use_wisdom and os.path.exists(wisdom_file):
         pyfftw.import_wisdom(load_wisdom(wisdom_file))
 
     # Get grids

@@ -4,3 +4,6 @@ DEFAULT_SUBMITIT_PARAMS = {
     'slurm_mem': '20GB',
     'timeout_min': 240,
 }
+
+FDTYPE = 'float64'
+CDTYPE = 'complex128'

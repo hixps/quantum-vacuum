@@ -14,6 +14,8 @@ import numexpr as ne
 from scipy.constants import pi, c, alpha, m_e, hbar, e
 import pyfftw
 
+from quvac import config
+
 
 BS = m_e**2 * c**2 / (hbar * e) # Schwinger magnetic field
 
@@ -43,14 +45,15 @@ class VacuumEmission(object):
         self.nthreads = nthreads if nthreads else os.cpu_count()
 
         # Define symbolic expressions to evaluate later
-        self.F_expr = "0.5 * (Bx**2 + By**2 + Bz**2 - Ex**2 - Ey**2 - Ez**2)"
+        # self.F_expr = "0.5 * (Bx**2 + By**2 + Bz**2 - Ex**2 - Ey**2 - Ez**2)"
+        self.F_expr = "(Bx**2 + By**2 + Bz**2 - Ex**2 - Ey**2 - Ez**2)/2"
         self.G_expr = "-(Ex*Bx + Ey*By + Ez*Bz)"
 
-        self.F, self.G = [np.zeros(self.grid_shape) for _ in range(2)]
+        self.F, self.G = [np.zeros(self.grid_shape, dtype=config.FDTYPE) for _ in range(2)]
 
         if not self.channels:
-            self.U1 = [f"(4.*E{ax}*F + 7.*B{ax}*G)" for ax in "xyz"]
-            self.U2 = [f"(4.*B{ax}*F - 7.*E{ax}*G)" for ax in "xyz"]
+            self.U1 = [f"(4*E{ax}*F + 7*B{ax}*G)" for ax in "xyz"]
+            self.U2 = [f"(4*B{ax}*F - 7*E{ax}*G)" for ax in "xyz"]
         else:
             self.define_channel_variables()
 
@@ -64,7 +67,8 @@ class VacuumEmission(object):
         self.G_Ep_B_expr = "-(Epx*Bx + Epy*By + Epz*Bz)"
         self.G_E_Bp_expr = "-(Ex*Bpx + Ey*Bpy + Ez*Bpz)"
 
-        self.F_B_Bp, self.G_Ep_B, self.G_E_Bp = [np.zeros(self.grid_shape) for _ in range(3)]
+        self.F_B_Bp, self.G_Ep_B, self.G_E_Bp = [np.zeros(self.grid_shape, dtype=config.FDTYPE)
+                                                 for _ in range(3)]
 
         self.U1 = [f"(4*(Ep{ax}*F + E{ax}*F_B_Bp) + 7*(Bp{ax}*G + B{ax}*(G_Ep_B + G_E_Bp)))"
                    for ax in "xyz"]
@@ -72,20 +76,20 @@ class VacuumEmission(object):
                    for ax in "xyz"]
 
     def allocate_fields(self):
-        self.E_out = [np.zeros(self.grid_shape, dtype=np.complex128) for _ in range(3)]
-        self.B_out = [np.zeros(self.grid_shape, dtype=np.complex128) for _ in range(3)]
+        self.E_out = [np.zeros(self.grid_shape, dtype=config.CDTYPE) for _ in range(3)]
+        self.B_out = [np.zeros(self.grid_shape, dtype=config.CDTYPE) for _ in range(3)]
         if self.channels:
-            self.E_probe = [np.zeros(self.grid_shape, dtype=np.complex128) for _ in range(3)]
-            self.B_probe = [np.zeros(self.grid_shape, dtype=np.complex128) for _ in range(3)]
+            self.E_probe = [np.zeros(self.grid_shape, dtype=config.CDTYPE) for _ in range(3)]
+            self.B_probe = [np.zeros(self.grid_shape, dtype=config.CDTYPE) for _ in range(3)]
 
     def allocate_result_arrays(self):
-        self.U1_acc = [np.zeros(self.grid_shape, dtype='complex128') for _ in range(3)]
-        self.U2_acc = [np.zeros(self.grid_shape, dtype='complex128') for _ in range(3)]
+        self.U1_acc = [np.zeros(self.grid_shape, dtype=config.CDTYPE) for _ in range(3)]
+        self.U2_acc = [np.zeros(self.grid_shape, dtype=config.CDTYPE) for _ in range(3)]
         self.U1_acc_x, self.U1_acc_y, self.U1_acc_z = self.U1_acc
         self.U2_acc_x, self.U2_acc_y, self.U2_acc_z = self.U2_acc
 
     def allocate_fft(self):
-        self.tmp = [pyfftw.zeros_aligned(self.grid_shape,  dtype='complex128') for _ in range(3)]
+        self.tmp = [pyfftw.zeros_aligned(self.grid_shape,  dtype=config.CDTYPE) for _ in range(3)]
         # Add number of threads
         self.tmp_fftw = [pyfftw.FFTW(a, a, axes=(0, 1, 2),
                                     direction='FFTW_FORWARD',
@@ -111,6 +115,7 @@ class VacuumEmission(object):
         
         Ex, Ey, Ez = [E.real for E in self.E_out]
         Bx, By, Bz = [B.real for B in self.B_out]
+
         ne.evaluate(self.F_expr, out=self.F)
         ne.evaluate(self.G_expr, out=self.G)
 
@@ -125,10 +130,14 @@ class VacuumEmission(object):
             for i,expr in enumerate(U_expr):
                 ne.evaluate(expr, global_dict=self.__dict__, out=self.tmp[i])
                 self.tmp_fftw[i].execute()
+                
                 U = self.tmp[i]
-                ne.evaluate(f"U{idx+1}_acc_{ax[i]} + U*exp(1j*kabs*c*t)*dt*weight*dV",
-                            global_dict=self.__dict__,
-                            out=self.__dict__[f"U{idx+1}_acc_{ax[i]}"])
+                # ne.evaluate(f"U{idx+1}_acc_{ax[i]} + U*exp(1j*kabs*c*t)*dt*weight*dV",
+                #             global_dict=self.__dict__,
+                #             out=self.__dict__[f"U{idx+1}_acc_{ax[i]}"])
+                U_res = ne.evaluate(f"U{idx+1}_acc_{ax[i]} + U*exp(1j*kabs*c*t)*dt*weight*dV",
+                                    global_dict=self.__dict__,)
+                self.__dict__[f"U{idx+1}_acc_{ax[i]}"] = U_res.astype(config.CDTYPE)
 
     def calculate_time_integral(self, t_grid, integration_method="trapezoid"):
         self.dt = t_grid[1] - t_grid[0]

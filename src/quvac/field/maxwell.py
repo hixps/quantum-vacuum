@@ -10,6 +10,7 @@ import numexpr as ne
 from scipy.constants import pi, c
 import pyfftw
 
+from quvac import config
 from quvac.field.abc import Field
 from quvac.field.gaussian import GaussianAnalytic
 
@@ -49,10 +50,12 @@ class MaxwellField(Field):
         self.EB_expr = [self.__dict__[f'Ef{ax}_expr'] for ax in 'xyz']
         self.EB_expr += [self.__dict__[f'Bf{ax}_expr'] for ax in 'xyz']
 
+        self.allocate_tmp()
+
     def allocate_ifft(self):
-        self.EB = [pyfftw.zeros_aligned(self.grid_shape, dtype='complex128')
+        self.EB = [pyfftw.zeros_aligned(self.grid_shape, dtype=config.CDTYPE)
                    for _ in range(6)]
-        self.a1t, self.a2t = [np.zeros(self.grid_shape, dtype='complex128')
+        self.a1t, self.a2t = [np.zeros(self.grid_shape, dtype=config.CDTYPE)
                               for _ in range(2)]
         # pyfftw scheme
         self.EB_fftw = [pyfftw.FFTW(a, a, axes=(0, 1, 2),
@@ -60,21 +63,27 @@ class MaxwellField(Field):
                                     flags=('FFTW_MEASURE', ),
                                     threads=self.nthreads)
                         for a in self.EB]
+        
+    def allocate_tmp(self):
+        self.tmp = pyfftw.zeros_aligned(self.grid_shape, dtype='complex128')
 
     def calculate_field(self, t, E_out=None, B_out=None):
         if E_out is None:
-            E_out = [np.zeros(self.grid_shape, dtype=np.complex128) for _ in range(3)]
-            B_out = [np.zeros(self.grid_shape, dtype=np.complex128) for _ in range(3)]
+            E_out = [np.zeros(self.grid_shape, dtype=config.CDTYPE) for _ in range(3)]
+            B_out = [np.zeros(self.grid_shape, dtype=config.CDTYPE) for _ in range(3)]
         
         # Calculate a1,a2 at time t
-        ne.evaluate('exp(-1.j*kabs*c*(t-t0)) * a1 * norm_ifft',
-                    global_dict=self.__dict__, out=self.a1t)
-        ne.evaluate('exp(-1.j*kabs*c*(t-t0)) * a2 * norm_ifft',
-                    global_dict=self.__dict__, out=self.a2t)
+        ne.evaluate('exp(-1j*kabs*c*(t-t0)) * a1 * norm_ifft',
+                          global_dict=self.__dict__, out=self.tmp)
+        self.a1t = self.tmp.astype(config.CDTYPE)
+        ne.evaluate('exp(-1j*kabs*c*(t-t0)) * a2 * norm_ifft',
+                          global_dict=self.__dict__, out=self.tmp)
+        self.a2t = self.tmp.astype(config.CDTYPE)
         # Calculate fourier of fields at time t and transform back to 
         # spatial domain
         for idx in range(6):
-            ne.evaluate(self.EB_expr[idx], global_dict=self.__dict__, out=self.EB[idx])
+            ne.evaluate(self.EB_expr[idx], global_dict=self.__dict__, out=self.tmp)
+            self.EB[idx] = self.tmp.astype(config.CDTYPE)
             self.EB_fftw[idx].execute()
             
             if idx < 3:
@@ -101,7 +110,7 @@ class MaxwellMultiple(MaxwellField):
     def __init__(self, fields, grid, nthreads=None):
         super().__init__(grid, nthreads)
 
-        self.a1, self.a2 = [pyfftw.zeros_aligned(self.grid_shape,  dtype='complex128')
+        self.a1, self.a2 = [pyfftw.zeros_aligned(self.grid_shape,  dtype=config.CDTYPE)
                             for _ in range(2)]
         self.fields = [fields] if isinstance(fields, dict) else fields
         for i,field in enumerate(self.fields):
