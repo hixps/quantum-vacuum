@@ -40,7 +40,7 @@ class GridXYZ(object):
     def get_k_grid(self):
         for i,ax in enumerate('xyz'):
             self.__dict__[f'k{ax}'] = 2*pi*np.fft.fftfreq(self.grid_shape[i],
-                                                          self.dxyz[i]).astype(config.FDTYPE) 
+                                                          self.dxyz[i])#.astype(config.FDTYPE) 
         self.kgrid = tuple((self.kx, self.ky, self.kz))
         self.kgrid_shifted = tuple(np.fft.fftshift(k) for k in (self.kx, self.ky, self.kz))
         self.dkxkykz = [ax[1]-ax[0] for ax in self.kgrid]

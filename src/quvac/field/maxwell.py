@@ -43,14 +43,24 @@ class MaxwellField(Field):
 
         self.c = c
         self.norm_ifft = self.dVk / (2.*pi)**3
-        for ax in 'xyz':
-            self.__dict__[f'Ef{ax}_expr'] = f"(e1{ax}*a1t + e2{ax}*a2t)"
-            self.__dict__[f'Bf{ax}_expr'] = f"(e2{ax}*a1t - e1{ax}*a2t)"
-        # Collect all expressions in one array
-        self.EB_expr = [self.__dict__[f'Ef{ax}_expr'] for ax in 'xyz']
-        self.EB_expr += [self.__dict__[f'Bf{ax}_expr'] for ax in 'xyz']
+
+        # 1st list for E, 2nd list for B
+        self.EB_expr = [
+                f"(e1{ax}*a1t + e2{ax}*a2t)" for ax in 'xyz'
+            ] + [
+                f"(e2{ax}*a1t - e1{ax}*a2t)" for ax in 'xyz'
+            ]
 
         self.allocate_tmp()
+
+        self.EB_dict = {
+            'e1x': self.e1x,
+            'e1y': self.e1y,
+            'e1z': self.e1z,
+            'e2x': self.e2x,
+            'e2y': self.e2y,
+            'e2z': self.e2z,
+        }
 
     def allocate_ifft(self):
         self.EB = [pyfftw.zeros_aligned(self.grid_shape, dtype=config.CDTYPE)
@@ -74,16 +84,21 @@ class MaxwellField(Field):
         
         # Calculate a1,a2 at time t
         ne.evaluate('exp(-1j*kabs*c*(t-t0)) * a1 * norm_ifft',
-                          global_dict=self.__dict__, out=self.tmp)
-        self.a1t = self.tmp.astype(config.CDTYPE)
+                    global_dict=self.__dict__, out=self.tmp)
+        a1t = self.tmp.astype(config.CDTYPE)
         ne.evaluate('exp(-1j*kabs*c*(t-t0)) * a2 * norm_ifft',
-                          global_dict=self.__dict__, out=self.tmp)
-        self.a2t = self.tmp.astype(config.CDTYPE)
+                    global_dict=self.__dict__, out=self.tmp)
+        a2t = self.tmp.astype(config.CDTYPE)
         # Calculate fourier of fields at time t and transform back to 
         # spatial domain
+        
+        # 
+        # self.EB_dict.update({'a1t': a1t, 'a2t': a2t})
         for idx in range(6):
             ne.evaluate(self.EB_expr[idx], global_dict=self.__dict__, out=self.tmp)
+            # ne.evaluate(self.EB_expr[idx], local_dict=self.EB_dict, out=self.tmp)
             self.EB[idx] = self.tmp.astype(config.CDTYPE)
+            self.EB_fftw[idx].update_arrays(self.EB[idx], self.EB[idx])
             self.EB_fftw[idx].execute()
             
             if idx < 3:
