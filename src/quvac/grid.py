@@ -11,10 +11,10 @@ Dynamical grid creation (`get_kmax_grid`, `get_xyz_size`,
 
 from collections.abc import Iterable
 
-import numpy as np
 import numexpr as ne
-from scipy.constants import pi, c
+import numpy as np
 import pyfftw
+from scipy.constants import c, pi
 
 from quvac import config
 

@@ -3,19 +3,17 @@
 Script to run Bayesian optimization on cluster with Slurm
 """
 import argparse
-import itertools
 import os
-from pathlib import Path
-from copy import deepcopy
 import time
+from pathlib import Path
 
-from ax.service.ax_client import AxClient, ObjectiveProperties
 import numpy as np
-from submitit import AutoExecutor, LocalJob, DebugJob
+from ax.service.ax_client import AxClient, ObjectiveProperties
+from submitit import AutoExecutor, DebugJob, LocalJob
 
 from quvac.cluster.config import DEFAULT_SUBMITIT_PARAMS
 from quvac.simulation import quvac_simulation
-from quvac.utils import write_yaml, read_yaml
+from quvac.utils import read_yaml, write_yaml
 
 
 def prepare_params_for_ax(params, ini_file):
@@ -36,7 +34,6 @@ def prepare_params_for_ax(params, ini_file):
 
 def quvac_evaluation(params):
     ini_data = read_yaml(params["ini_default"])
-    # ini_data = deepcopy(params['ini_default'])
     params.pop("ini_default")
     trial_idx = params.pop("trial_idx")
     scales = ini_data.get("scales", {})

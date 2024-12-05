@@ -4,7 +4,6 @@ Usefult functions and default strings for logs
 
 from quvac.utils import format_memory, format_time
 
-
 # Warning when total signal on spherical grid differs from
 # cartesian grid one
 sph_interp_warn = """WARNING:

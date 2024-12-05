@@ -6,14 +6,14 @@ simulations
 import os
 from pathlib import Path
 
-import pytest
 import numpy as np
-from scipy.constants import c
+import pytest
 from ax.service.ax_client import AxClient
+from scipy.constants import c
 
-from quvac.utils import read_yaml, write_yaml
 from quvac.cluster.optimization import gather_trials_data
-from config import DEFAULT_CONFIG_PATH, OPTIMIZATION_SCRIPT
+from quvac.utils import read_yaml, write_yaml
+from test_config import DEFAULT_CONFIG_PATH, OPTIMIZATION_SCRIPT
 
 
 @pytest.mark.slow

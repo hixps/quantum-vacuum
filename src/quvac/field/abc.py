@@ -3,15 +3,14 @@ This script provides abstract interface for existing and future field
 classes
 """
 
-from abc import ABC, abstractmethod
 import logging
+from abc import ABC, abstractmethod
 
-import numpy as np
 import numexpr as ne
+import numpy as np
 import pyfftw
 
 from quvac.field.utils import get_field_energy_kspace
-
 
 logger = logging.getLogger("simulation")
 

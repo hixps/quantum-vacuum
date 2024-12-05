@@ -7,28 +7,21 @@ do postprocessing and measure performance
 import argparse
 import logging
 import os
-from pathlib import Path
-import time
 import resource
+import time
 from copy import deepcopy
+from pathlib import Path
 
 import numpy as np
 import submitit
 
 from quvac.config import DEFAULT_SUBMITIT_PARAMS
 from quvac.grid import setup_grids
-from quvac.log import (
-    simulation_start_str,
-    simulation_end_str,
-    get_grid_params,
-    get_parallel_performance_stats,
-    get_postprocess_info,
-    test_run_str,
-)
-from quvac.simulation import quvac_simulation
+from quvac.log import (get_parallel_performance_stats, get_postprocess_info,
+                       simulation_end_str, simulation_start_str)
 from quvac.postprocess import VacuumEmissionAnalyzer
+from quvac.simulation import quvac_simulation
 from quvac.utils import read_yaml, write_yaml
-
 
 logger = logging.getLogger("simulation")
 

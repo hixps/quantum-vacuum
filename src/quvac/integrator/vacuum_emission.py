@@ -6,16 +6,15 @@ It is planned to add support for two versions:
 """
 
 import os
-from pathlib import Path
 import time
+from pathlib import Path
 
-import numpy as np
 import numexpr as ne
-from scipy.constants import pi, c, alpha, m_e, hbar, e
+import numpy as np
 import pyfftw
+from scipy.constants import alpha, c, e, hbar, m_e, pi
 
 from quvac import config
-
 
 BS = m_e**2 * c**2 / (hbar * e)  # Schwinger magnetic field
 
@@ -159,6 +158,11 @@ class VacuumEmission(object):
             ne.evaluate(self.F_B_Bp_expr, out=self.F_B_Bp)
             ne.evaluate(self.G_Ep_B_expr, out=self.G_Ep_B)
             ne.evaluate(self.G_E_Bp_expr, out=self.G_E_Bp)
+            self.U_dict.update({"Epx": Epx, "Epy": Epy, "Epz": Epz,
+                                "Bpx": Bpx, "Bpy": Bpy, "Bpz": Bpz,
+                                "F_B_Bp": self.F_B_Bp,
+                                "G_Ep_B": self.G_Ep_B,
+                                "G_E_Bp": self.G_E_Bp,})
 
         # Evaluate U1 and U2 expressions
         self.prefactor_dict.update({"t": t})

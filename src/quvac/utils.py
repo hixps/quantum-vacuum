@@ -2,15 +2,15 @@
 Useful generic utilities
 """
 
-from contextlib import contextmanager
 import os
-from pathlib import Path
 import platform
-import yaml
 import zipfile
+from contextlib import contextmanager
+from pathlib import Path
 
 import numpy as np
 import pyfftw
+import yaml
 
 
 def read_yaml(yaml_file):

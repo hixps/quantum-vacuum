@@ -6,15 +6,14 @@ and a particular implementation of GaussianMaxwell
 import logging
 import os
 
-import numpy as np
 import numexpr as ne
-from scipy.constants import pi, c
+import numpy as np
 import pyfftw
+from scipy.constants import c, pi
 
 from quvac import config
 from quvac.field.abc import Field
 from quvac.field.gaussian import GaussianAnalytic
-
 
 SPATIAL_MODEL_FIELDS = {
     "paraxial_gaussian_maxwell": GaussianAnalytic,

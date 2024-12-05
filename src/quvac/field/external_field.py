@@ -3,13 +3,12 @@ This script provides uniform ExternalField class to unite all
 participating fields in one interface
 """
 
-import os
 import logging
+import os
 
 from quvac.field.abc import Field
 from quvac.field.gaussian import GaussianAnalytic
 from quvac.field.maxwell import MaxwellMultiple
-
 
 logger = logging.getLogger("simulation")
 

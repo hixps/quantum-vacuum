@@ -1,8 +1,8 @@
 """This script implements analytic expression for paraxial gaussian"""
 
-import numpy as np
 import numexpr as ne
-from scipy.constants import pi, c
+import numpy as np
+from scipy.constants import c, pi
 from scipy.spatial.transform import Rotation
 
 from quvac.field.abc import ExplicitField

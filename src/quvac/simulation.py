@@ -7,28 +7,23 @@ do postprocessing and measure performance
 import argparse
 import logging
 import os
-from pathlib import Path
-import time
 import resource
+import time
+from pathlib import Path
 
 import numexpr as ne
 import pyfftw
 
 from quvac import config
-from quvac.log import (
-    simulation_start_str,
-    simulation_end_str,
-    get_grid_params,
-    get_performance_stats,
-    get_postprocess_info,
-    test_run_str,
-)
 from quvac.field.external_field import ExternalField, ProbePumpField
-from quvac.integrator.vacuum_emission import VacuumEmission
 from quvac.grid import setup_grids
+from quvac.integrator.vacuum_emission import VacuumEmission
+from quvac.log import (get_grid_params, get_performance_stats,
+                       get_postprocess_info, simulation_end_str,
+                       simulation_start_str, test_run_str)
 from quvac.postprocess import VacuumEmissionAnalyzer
-from quvac.utils import read_yaml, write_yaml, load_wisdom, save_wisdom, format_time
-
+from quvac.utils import (format_time, load_wisdom, read_yaml, save_wisdom,
+                         write_yaml)
 
 logger = logging.getLogger("simulation")
 

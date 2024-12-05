@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 
 from quvac.utils import read_yaml, write_yaml
-from config import DEFAULT_CONFIG_PATH, GRIDSCAN_SCRIPT
+from test_config import DEFAULT_CONFIG_PATH, GRIDSCAN_SCRIPT
 
 
 def test_gridscan():

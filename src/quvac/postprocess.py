@@ -8,16 +8,15 @@ Here we provide analyzer classes that calculate from amplitudes:
 import logging
 import warnings
 
-import numpy as np
 import numexpr as ne
-from scipy.constants import pi, c, hbar, epsilon_0
+import numpy as np
+from scipy.constants import c, epsilon_0, hbar, pi
 from scipy.integrate import trapezoid
 from scipy.ndimage import map_coordinates
 
-from quvac.log import sph_interp_warn
-from quvac.grid import GridXYZ, get_pol_basis
 from quvac.field.maxwell import MaxwellMultiple
-
+from quvac.grid import GridXYZ, get_pol_basis
+from quvac.log import sph_interp_warn
 
 logger = logging.getLogger("simulation")
 

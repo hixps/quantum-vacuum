@@ -5,15 +5,15 @@ Script to run gridscan simulations on cluster with Slurm
 import argparse
 import itertools
 import os
-from pathlib import Path
 from copy import deepcopy
+from pathlib import Path
 
 import numpy as np
 import submitit
 
 from quvac.cluster.config import DEFAULT_SUBMITIT_PARAMS
 from quvac.simulation import quvac_simulation
-from quvac.utils import write_yaml, read_yaml
+from quvac.utils import read_yaml, write_yaml
 
 
 def _create_grids(variables):
@@ -169,6 +169,8 @@ def cluster_gridscan(ini_file, variables_file, save_path=None, wisdom_file=None)
     if cluster == "slurm":
         executor.update_parameters(slurm_array_parallelism=max_jobs)
         executor.update_parameters(**sbatch_params)
+    else:
+        executor.update_parameters(timeout_min=30)
     print("Submitting jobs...")
     jobs = executor.map_array(quvac_simulation, ini_files)
     print("Jobs submitted, waiting for results...")

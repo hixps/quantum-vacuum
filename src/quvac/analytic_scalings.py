@@ -4,8 +4,7 @@ scalings from articles
 """
 
 import numpy as np
-from scipy.constants import pi, c, alpha, m_e, hbar
-
+from scipy.constants import alpha, c, hbar, m_e, pi
 
 W_e = m_e * c**2  # electron's rest energy
 lam_C = hbar / (m_e * c)  # reduced Compton wavelength

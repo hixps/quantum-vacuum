@@ -2,9 +2,8 @@
 Here we provide utility functions related to fields
 """
 
-import numpy as np
 import numexpr as ne
-from scipy.constants import pi, c, epsilon_0, mu_0
+from scipy.constants import c, epsilon_0, mu_0, pi
 
 
 def get_field_energy(E, B, dV):
