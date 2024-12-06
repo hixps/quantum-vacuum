@@ -51,7 +51,7 @@ def create_ini_files_for_parallel(ini_config, grid_xyz, grid_t, n_jobs, save_pat
             "Nt": Nt,
         }
         ini_job["grid"].update(grid_params_job)
-        ini_path_job = os.path.join(save_path, f"job_{idx}", "ini.yml")
+        ini_path_job = os.path.join(save_path, f"job_{str(idx).zfill(2)}", "ini.yml")
         Path(os.path.dirname(ini_path_job)).mkdir(parents=True, exist_ok=True)
         write_yaml(ini_path_job, ini_job)
         ini_files.append(ini_path_job)
