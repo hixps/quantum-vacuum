@@ -4,6 +4,7 @@ Useful generic utilities
 
 import os
 import platform
+import resource
 import zipfile
 from contextlib import contextmanager
 from pathlib import Path
@@ -76,6 +77,10 @@ def load_wisdom(wisdom_file):
     with open(wisdom_file, "rb") as f:
         wisdom = f.read()
     return tuple(wisdom.split(b"\n"))
+
+
+def get_maxrss():
+    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
 
 @contextmanager

@@ -1,7 +1,6 @@
 """
 Usefult functions and default strings for logs
 """
-
 from quvac.utils import format_memory, format_time
 
 # Warning when total signal on spherical grid differs from
@@ -29,6 +28,16 @@ Memory (max usage):
 ====================================================
 Amplitudes calculation:    {:>15s}
 Total:                     {:>15s}
+====================================================
+"""
+
+# perf string for postprocess
+performance_post_str = """
+Postprocess:
+====================================================
+Time:                      {:>15s}
+----------------------------------------------------
+Memory (max usage):        {:>15s}
 ====================================================
 """
 
@@ -158,6 +167,20 @@ def get_performance_stats(perf_stats):
     return perf_print
 
 
+def get_postprocess_stats(perf_stats):
+    timings = perf_stats['timings']
+    timings = {
+        'postprocess': timings["postprocess"] - timings["start"]
+    }
+    timings = {k: format_time(t) for k, t in timings.items()}
+    memory = {k: format_memory(m) for k, m in perf_stats["memory"].items()}
+    perf_print = performance_post_str.format(
+        timings['postprocess'],
+        memory["maxrss_total"]
+    )
+    return perf_print
+
+
 def get_parallel_performance_stats(perf_stats):
     timings = perf_stats["timings"]
     timings = {
@@ -175,3 +198,16 @@ def get_parallel_performance_stats(perf_stats):
         memory["maxrss_total"],
     )
     return perf_print
+
+
+def get_test_timings(timings, Nt, expected_timesteps):
+    time_overhead = timings['amplitudes'] - timings['field_setup'] - timings['integral']
+    time_per_iteration = timings['integral'] / Nt
+    expected_time = time_per_iteration * expected_timesteps
+    time_total = time_overhead + expected_time
+    test_run_str_print = test_run_str.format(
+        format_time(time_per_iteration),
+        format_time(time_overhead),
+        format_time(time_total),
+    )
+    return test_run_str_print
