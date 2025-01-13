@@ -6,6 +6,7 @@ Here we provide analyzer classes that calculate from amplitudes:
 """
 
 import logging
+import os
 import warnings
 
 import numexpr as ne
@@ -61,6 +62,9 @@ def cartesian_to_spherical_array(
         theta = np.arange(0.0, pi, dangle, dtype=config.FDTYPE)
         phi = np.arange(0.0, 2 * pi, dangle, dtype=config.FDTYPE)
         spherical_grid = (k, theta, phi)
+    elif isinstance(spherical_grid, str) and os.path.isfile(spherical_grid):
+        data = np.load(spherical_grid)
+        spherical_grid = (data["k"], data["theta"], data["phi"])
     spherical_mesh = np.meshgrid(*spherical_grid, indexing="ij", sparse=True)
 
     # Find corresponding cartesian coordinates of spherical mesh:
