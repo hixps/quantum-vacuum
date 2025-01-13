@@ -57,9 +57,9 @@ def cartesian_to_spherical_array(
         kmax = np.max(xyz_grid.kabs)
         dangle = angular_resolution if angular_resolution else 1.0 * pi / 180
 
-        k = np.arange(0.0, kmax, dk)
-        theta = np.arange(0.0, pi, dangle)
-        phi = np.arange(0.0, 2 * pi, dangle)
+        k = np.arange(0.0, kmax, dk, dtype=config.FDTYPE)
+        theta = np.arange(0.0, pi, dangle, dtype=config.FDTYPE)
+        phi = np.arange(0.0, 2 * pi, dangle, dtype=config.FDTYPE)
         spherical_grid = (k, theta, phi)
     spherical_mesh = np.meshgrid(*spherical_grid, indexing="ij", sparse=True)
     nk, ntheta, nphi = [len(ax) for ax in spherical_grid]
@@ -128,6 +128,7 @@ class VacuumEmissionAnalyzer:
             self.__dict__[f"k{ax}"] = np.fft.fftshift(self.__dict__[f"k{ax}"])
 
         self.S1, self.S2 = data["S1"].astype(config.CDTYPE), data["S2"].astype(config.CDTYPE)
+        logger.info(f"S1, S2: {self.S1.dtype}, {self.S2.dtype}")
 
         self.save_path = save_path
 
@@ -138,6 +139,7 @@ class VacuumEmissionAnalyzer:
         # )
         S = self.S1.real**2 + self.S1.imag**2 + self.S2.real**2 + self.S2.imag**2
         self.N_xyz = np.fft.fftshift(S / (2 * pi) ** 3)
+        logger.info(f"N_xyz: {self.N_xyz.dtype}")
 
         self.N_tot = np.sum(self.N_xyz) * self.dVk
         # self.N_tot = ne.evaluate("sum(N_xyz)", global_dict=self.__dict__)
@@ -187,11 +189,13 @@ class VacuumEmissionAnalyzer:
         # ep_e2 = (epx*e2x + epy*e2y + epz*e2z)
         Sp = (epx*e1x + epy*e1y + epz*e1z)*self.S1 + (epx*e2x + epy*e2y + epz*e2z)*self.S2
         Sp = Sp.real**2 + Sp.imag**2
+        logger.info(f"Sp: {Sp.dtype}")
         # ep_e1 = "(epx*e1x + epy*e1y + epz*e1z)"
         # ep_e2 = "(epx*e2x + epy*e2y + epz*e2z)"
         # Sp = ne.evaluate(f"({ep_e1}*S1 + {ep_e2}*S2)", global_dict=self.__dict__)
         # Sp = ne.evaluate("Sp.real**2 + Sp.imag**2", global_dict=self.__dict__)
         self.Np_xyz = np.fft.fftshift(Sp / (2 * pi) ** 3)
+        logger.info(f"Np_xyz: {self.Np_xyz.dtype}")
 
         self.Np_tot = np.sum(self.Np_xyz) * self.dVk
         # self.Np_tot = ne.evaluate("sum(Np_xyz)", global_dict=self.__dict__)
