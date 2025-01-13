@@ -131,14 +131,16 @@ class VacuumEmissionAnalyzer:
         self.save_path = save_path
 
     def get_total_signal(self):
-        S = ne.evaluate(
-            "S1.real**2 + S1.imag**2 + S2.real**2 + S2.imag**2",
-            global_dict=self.__dict__,
-        )
+        # S = ne.evaluate(
+        #     "S1.real**2 + S1.imag**2 + S2.real**2 + S2.imag**2",
+        #     global_dict=self.__dict__,
+        # )
+        S = self.S1.real**2 + self.S1.imag**2 + self.S2.real**2 + self.S2.imag**2
         self.N_xyz = np.fft.fftshift(S / (2 * pi) ** 3)
 
-        self.N_tot = ne.evaluate("sum(N_xyz)", global_dict=self.__dict__)
-        self.N_tot *= self.dVk
+        self.N_tot = np.sum(self.N_xyz) * self.dVk
+        # self.N_tot = ne.evaluate("sum(N_xyz)", global_dict=self.__dict__)
+        # self.N_tot *= self.dVk
 
     def get_polarization_from_field(self):
         field = MaxwellMultiple(self.fields_params, self.grid_xyz)
@@ -175,16 +177,24 @@ class VacuumEmissionAnalyzer:
 
         # get one polarization direction to project on:
         self.ep = self._get_polarization_vector(angles, perp_type)
+        epx, epy, epz = self.ep
+        e1x, e1y, e1z = self.e1x, self.e1y, self.e1z
+        e2x, e2y, e2z = self.e2x, self.e2y, self.e2z
 
         # Calculate perp signal
-        ep_e1 = "(epx*e1x + epy*e1y + epz*e1z)"
-        ep_e2 = "(epx*e2x + epy*e2y + epz*e2z)"
-        Sp = ne.evaluate(f"({ep_e1}*S1 + {ep_e2}*S2)", global_dict=self.__dict__)
-        Sp = ne.evaluate("Sp.real**2 + Sp.imag**2", global_dict=self.__dict__)
+        # ep_e1 = (epx*e1x + epy*e1y + epz*e1z)
+        # ep_e2 = (epx*e2x + epy*e2y + epz*e2z)
+        Sp = (epx*e1x + epy*e1y + epz*e1z)*self.S1 + (epx*e2x + epy*e2y + epz*e2z)*self.S2
+        Sp = Sp.real**2 + Sp.imag**2
+        # ep_e1 = "(epx*e1x + epy*e1y + epz*e1z)"
+        # ep_e2 = "(epx*e2x + epy*e2y + epz*e2z)"
+        # Sp = ne.evaluate(f"({ep_e1}*S1 + {ep_e2}*S2)", global_dict=self.__dict__)
+        # Sp = ne.evaluate("Sp.real**2 + Sp.imag**2", global_dict=self.__dict__)
         self.Np_xyz = np.fft.fftshift(Sp / (2 * pi) ** 3)
 
-        self.Np_tot = ne.evaluate("sum(Np_xyz)", global_dict=self.__dict__)
-        self.Np_tot *= self.dVk
+        self.Np_tot = np.sum(self.Np_xyz) * self.dVk
+        # self.Np_tot = ne.evaluate("sum(Np_xyz)", global_dict=self.__dict__)
+        # self.Np_tot *= self.dVk
 
     def get_signal_on_sph_grid(
         self, spherical_grid=None, angular_resolution=None, **interp_kwargs
@@ -283,6 +293,8 @@ class VacuumEmissionAnalyzer:
                     "N_sph_total": self.N_sph_tot,
                 }
             )
+        if "Np_sph" in self.__dict__:
+            data.update({"Np_sph": self.Np_sph})
         if "N_disc" in self.__dict__:
             data.update(
                 {
@@ -313,6 +325,7 @@ class VacuumEmissionAnalyzer:
             angle_keys = "theta phi beta".split()
             angles = [self.fields_params[perp_field_idx - 1][key] for key in angle_keys]
             self.get_perp_signal(angles, perp_type=perp_type)
+        del self.S1, self.S2
 
         if calculate_spherical:
             self.get_signal_on_sph_grid(**spherical_params)
