@@ -14,6 +14,7 @@ from scipy.constants import c, epsilon_0, hbar, pi
 from scipy.integrate import trapezoid
 from scipy.ndimage import map_coordinates
 
+from quvac import config
 from quvac.field.maxwell import MaxwellMultiple
 from quvac.grid import GridXYZ, get_pol_basis
 from quvac.log import sph_interp_warn
@@ -126,7 +127,7 @@ class VacuumEmissionAnalyzer:
         for ax in "xyz":
             self.__dict__[f"k{ax}"] = np.fft.fftshift(self.__dict__[f"k{ax}"])
 
-        self.S1, self.S2 = data["S1"], data["S2"]
+        self.S1, self.S2 = data["S1"].astype(config.CDTYPE), data["S2"].astype(config.CDTYPE)
 
         self.save_path = save_path
 
