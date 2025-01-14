@@ -223,11 +223,19 @@ class VacuumEmissionAnalyzer:
         )
         N_xyz[0, 0, 0] = 0.0
         return np.fft.fftshift(N_xyz)
-
-    def get_background(self, discernibility="angular", **interp_kwargs):
+    
+    def get_background_xyz(self, add_to_cls_dict=True):
         bgr_field = MaxwellMultiple(self.fields_params, self.grid_xyz)
         bgr_N_xyz = self.get_photon_spectrum_from_a12(bgr_field.a1, bgr_field.a2)
-        del bgr_field
+        if add_to_cls_dict:
+            self.background_xyz = bgr_N_xyz
+        return bgr_N_xyz
+
+    def get_background(self, discernibility="angular", **interp_kwargs):
+        # bgr_field = MaxwellMultiple(self.fields_params, self.grid_xyz)
+        # bgr_N_xyz = self.get_photon_spectrum_from_a12(bgr_field.a1, bgr_field.a2)
+        # del bgr_field
+        bgr_N_xyz = self.get_background_xyz(add_to_cls_dict=False)
 
         # Interpolate on spherical grid
         _, bgr_N_sph = cartesian_to_spherical_array(
@@ -268,6 +276,7 @@ class VacuumEmissionAnalyzer:
 
     def get_total_spectra(
         self,
+        calculate_xyz_background=False,
         calculate_spherical=False,
         spherical_params=None,
         calculate_discernible=False,
@@ -276,6 +285,9 @@ class VacuumEmissionAnalyzer:
         self.get_total_signal()
         keys = "kx ky kz N_xyz N_total".split()
 
+        if calculate_xyz_background:
+            self.get_background_xyz()
+            keys.extend(["background_xyz"])
         if calculate_spherical:
             self.get_signal_on_sph_grid(key="N_xyz", **spherical_params)
             keys.extend("k theta phi N_sph N_sph_total".split())
@@ -308,6 +320,7 @@ class VacuumEmissionAnalyzer:
         mode="total",
         perp_field_idx=1,
         perp_type=None,
+        calculate_xyz_background=False,
         calculate_spherical=False,
         spherical_params=None,
         calculate_discernible=False,
@@ -315,6 +328,7 @@ class VacuumEmissionAnalyzer:
     ):
         if mode == "total":
             self.get_total_spectra(
+                calculate_xyz_background=calculate_xyz_background,
                 calculate_spherical=calculate_spherical,
                 spherical_params=spherical_params,
                 calculate_discernible=calculate_discernible,
