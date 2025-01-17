@@ -90,9 +90,10 @@ def get_onaxis_scaling(fields, k0=20):
     """
     wx, w0 = fields[0]["w0"], fields[1]["w0"]
     beta = wx / w0
-    W = fields[1]["W"]
+    Wx, W = fields[0]["W"], fields[1]["W"]
     lam_x, lam = fields[0]["lam"], fields[1]["lam"]
     omega_x = 2 * pi * c / lam_x
+    Nx = Wx / (hbar * omega_x)
     T, tau = fields[0]["tau"], fields[1]["tau"]
     zR = pi * w0**2 / lam
 
@@ -102,7 +103,7 @@ def get_onaxis_scaling(fields, k0=20):
     F0 = f_felix(x0, r0, k0=k0)
 
     prefactor = 4 * alpha**4 / (3*pi)**1.5 * W**2 * (hbar * omega_x)**2 / W_e**4
-    result = prefactor * (lam_C / w0)**4 / (1 + 2*beta**2) * np.sqrt(Fbeta*F0)
+    result = prefactor * (lam_C / w0)**4 / (1 + 2*beta**2) * np.sqrt(Fbeta*F0) * Nx
 
     N_signal = 26/45 * result
     N_perp = 1/25 * result
