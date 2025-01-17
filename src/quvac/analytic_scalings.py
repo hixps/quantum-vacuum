@@ -12,7 +12,7 @@ W_e = m_e * c**2  # electron's rest energy
 lam_C = hbar / (m_e * c)  # reduced Compton wavelength
 
 
-def get_two_paraxial_scaling(fields):
+def get_two_paraxial_scaling(fields, channels="both"):
     """
     This is a variation of Eq.(25) from F. Karbstein, et al. "Vacuum
     birefringence at x-ray free-electron lasers." New Journal of Physics
@@ -27,10 +27,18 @@ def get_two_paraxial_scaling(fields):
     theta_c = (fields[1]["theta"] - fields[0]["theta"]) * pi / 180
     beta = (fields[1]["beta"] - fields[0]["beta"]) * pi / 180
 
-    omega = 2 * pi * c / fields[1]["lam"]
+    omega = 2 * pi * c / fields[0]["lam"]
     N_signal, N_perp = 0, 0
     # Iterate through pump/probe channels
-    for field1, field2 in [fields, fields[::-1]]:
+    match channels:
+        case "first":
+            fields_to_iterate = [fields]
+        case "second":
+            fields_to_iterate = [fields[::-1]]
+        case _:
+            fields_to_iterate = [fields, fields[::-1]]
+
+    for field1, field2 in fields_to_iterate:
         tau1, tau2 = field1["tau"], field2["tau"]
         w01, w02 = field1["w0"], field2["w0"]
         W1, W2 = field1["W"], field2["W"]
