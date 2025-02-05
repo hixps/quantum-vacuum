@@ -125,20 +125,22 @@ class MaxwellField(Field):
 
         # Calculate fourier of fields at time t and transform back to
         # spatial domain
-        # for idx in range(6):
-        for idx in range(3):
+        for idx in range(6):
+        # for idx in range(3):
             ne.evaluate(self.EB_expr[idx], local_dict=self.EB_dict, out=self.tmp)
-            # self.EB[idx][:] = self.tmp.astype(config.CDTYPE)
-            # self.EB_fftw[idx].execute()
-            E_out[idx][:] = self.tmp.astype(config.CDTYPE)
-            self.EB_fftw.update_arrays(E_out[idx], E_out[idx])
+            if idx < 3:
+                E_out[idx][:] = self.tmp.astype(config.CDTYPE)
+                self.EB_fftw.update_arrays(E_out[idx], E_out[idx])
+            else:
+                B_out[idx-3][:] = self.tmp.astype(config.CDTYPE)
+                self.EB_fftw.update_arrays(B_out[idx-3], B_out[idx-3])
             self.EB_fftw.execute()
         
-        for idx in range(3):
-            ne.evaluate(self.EB_expr[3+idx], local_dict=self.EB_dict, out=self.tmp)
-            B_out[idx][:] = self.tmp.astype(config.CDTYPE)
-            self.EB_fftw.update_arrays(B_out[idx], B_out[idx])
-            self.EB_fftw.execute()
+        # for idx in range(3):
+            # ne.evaluate(self.EB_expr[3+idx], local_dict=self.EB_dict, out=self.tmp)
+            # B_out[idx][:] = self.tmp.astype(config.CDTYPE)
+            # self.EB_fftw.update_arrays(B_out[idx], B_out[idx])
+            # self.EB_fftw.execute()
         return E_out, B_out
 
 
