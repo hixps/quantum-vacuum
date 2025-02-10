@@ -58,14 +58,15 @@ def plot_fields(field, t, plot_keys=None, cmap='coolwarm',
             ax = plt.subplot(n_rows, n_cols, i*n_cols+j+1)
             im = plt.pcolormesh(ax_bottom[j], ax_top[j], comp, shading=None,
                                 rasterized=True, cmap=cmap)
+            plt.xlabel(f"{x_labels[j]} [$\\mu$m]")
+            plt.ylabel("x [$\\mu$m]")
+            plt.title(f"{key} at focal plane")
+
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.05)
             cbar = plt.colorbar(im, cax=cax)
 
             ax.set_aspect('equal')
-            plt.xlabel(f"{x_labels[j]} [$\\mu$m]")
-            plt.ylabel("x [$\\mu$m]")
-            plt.title(f"{key} at focal plane")
     save_fig(save_path, "field_profiles_focus")
     plt.show()
 
@@ -83,7 +84,7 @@ def plot_fields(field, t, plot_keys=None, cmap='coolwarm',
                   comp[nx//2, ny//2, :]]
         for j,slc in enumerate(slices):
             plt.subplot(n_rows, n_cols, i*n_cols+j+1)
-            plt.plot(axs[j], slc)
+            plt.plot(axs[j], np.abs(slc))
             plt.yscale("log")
             plt.xlabel(f"{axs_names[j]} [$\\mu$m]")
             if j == 0:
