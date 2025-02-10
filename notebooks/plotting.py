@@ -46,7 +46,7 @@ def plot_fields(field, t, plot_keys=None, cmap='coolwarm',
     n_rows = len(plot_keys)
     n_cols = 2
 
-    fig = plt.figure(figsize=(10, 5*n_rows), layout="constrained")
+    fig = plt.figure(figsize=(12, 5*n_rows), layout="constrained")
     for i,key in enumerate(plot_keys):
         if key == "Intensity":
             cmap = "inferno"
@@ -79,7 +79,7 @@ def plot_fields(field, t, plot_keys=None, cmap='coolwarm',
     axs = [x, y, z]
     axs_names = ["x", "y", "z"]
 
-    fig = plt.figure(figsize=(15, 5*n_rows), layout="constrained")
+    fig = plt.figure(figsize=(18, 5*n_rows), layout="constrained")
     for i,key in enumerate(plot_keys):
         comp = field_comps[key]
         slices = [comp[:, ny//2, nz//2],
