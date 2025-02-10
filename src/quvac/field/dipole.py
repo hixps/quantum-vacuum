@@ -91,8 +91,8 @@ class DipoleAnalytic(ExplicitField):
             self.g_expr = env
             self.gdot_expr = f'{env} * (-2*t*{a2} - 1j*omega)'
             self.gdotdot_expr = (f'{env} * (4*t**2*{a2}**2 - 2*{a2} - omega**2 + 4j*t*omega*{a2})')
-            self.E_R0 = (f"{env} * (-2*t*{a2}*(4*t**2*{a2}**2 - 3*omega**2 - 6*{a2})*sin(omega*t)"
-                         f" - 1j*omega*(12*t**2*{a2}**2 - omega**2 - 6*{a2})*cos(omega*t))")
+            self.E_R0 = (f"{env} * (-2*t*{a2}*(4*t**2*{a2}**2 - 3*omega**2 - 6*{a2})"
+                         f" - 1j*omega*(12*t**2*{a2}**2 - omega**2 - 6*{a2}))")
             
         self.check_energy()
 
@@ -122,10 +122,6 @@ class DipoleAnalytic(ExplicitField):
         if "W" in self.__dict__.keys() and not np.isclose(W, self.W, rtol=1e-5):
             self.d0 *= np.sqrt(self.W / W)
             self.W_num = W * self.d0**2
-        #     self.E0 *= np.sqrt(self.W / W)
-        #     self.B0 = self.E0 / c
-        #     self.E = ne.evaluate(self.E_expr, global_dict=self.__dict__)
-        #     self.W_num = W * self.E0**2
 
     def g(self, t):
         return ne.evaluate(self.g_expr, global_dict=self.__dict__)
@@ -156,7 +152,6 @@ class DipoleAnalytic(ExplicitField):
         self.Ex[Nx//2,Ny//2,Nz//2] = 0.
         self.Ey[Nx//2,Ny//2,Nz//2] = 0.
         self.Ez[Nx//2,Ny//2,Nz//2] = 4/(3*c**3)*ne.evaluate(self.E_R0, global_dict=self.__dict__)
-        # self.Ez[Nx//2,Ny//2,Nz//2] = 4/3*self.k**3*(1+6/(self.tau*self.omega)**2)*np.cos(self.omega*t)
 
         self.Bx[Nx//2,Ny//2,Nz//2] = 0.
         self.By[Nx//2,Ny//2,Nz//2] = 0.

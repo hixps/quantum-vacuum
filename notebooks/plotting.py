@@ -68,12 +68,8 @@ def plot_fields(field, t, plot_keys=None, cmap='coolwarm',
             plt.title(f"{key} at focal plane")
 
             plt.colorbar(im, shrink=0.6)
-            # divider = make_axes_locatable(ax)
-            # cax = divider.append_axes("right", size="5%", pad=0.05)
-            # cbar = plt.colorbar(im, cax=cax)
 
             ax.set_aspect('equal')
-    # plt.subplots_adjust(wspace=0.1)
     save_fig(save_path, "field_profiles_focus")
     plt.show()
 
