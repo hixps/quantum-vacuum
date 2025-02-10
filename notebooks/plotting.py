@@ -38,7 +38,7 @@ def plot_fields(field, t, plot_keys=None, cmap='coolwarm',
         "Bx": B[0],
         "By": B[1],
         "Bz": B[2],
-        "I": I,
+        "Intensity": I,
     }
 
     plot_keys = plot_keys if plot_keys is not None else field_comps.keys()
@@ -48,7 +48,7 @@ def plot_fields(field, t, plot_keys=None, cmap='coolwarm',
 
     fig = plt.figure(figsize=(10, 5*n_rows), layout="constrained")
     for i,key in enumerate(plot_keys):
-        if key == "I":
+        if key == "Intensity":
             cmap = "inferno"
 
         ax_bottom, ax_top = [y, z], [x, x]
@@ -65,7 +65,7 @@ def plot_fields(field, t, plot_keys=None, cmap='coolwarm',
             plt.xlabel(f"{x_labels[j]} [$\\mu$m]")
             if j == 0:
                 plt.ylabel("x [$\\mu$m]")
-            plt.title(f"{key} at focal plane")
+            plt.title(f"{key} at t={t*1e15:.1f} fs")
 
             plt.colorbar(im, shrink=0.6)
 
