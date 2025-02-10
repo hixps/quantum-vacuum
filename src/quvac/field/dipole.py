@@ -86,14 +86,13 @@ class DipoleAnalytic(ExplicitField):
             self.gdot_expr = 'omega*exp(-1j*omega*t)'
             self.gdotdot_expr = "-1j*omega**2*exp(-1j*omega*t)"
         elif self.envelope == "gauss":
-            a = "(tau/2)"
-            self.g_expr = f'-1j*exp(-(t/{a})**2 - 1j*omega*t)'
-            self.gdot_expr = f'-1j*exp(-(t/{a})**2 - 1j*omega*t) * (-2*t/{a}**2 - 1j*omega)'
-            self.gdotdot_expr = (f'-1j*exp(-(t/{a})**2 - 1j*omega*t) * (4*t**2/{a}**4 '
-                                 f'- 2/{a}**2 - omega**2 + 4j*t*omega/{a}**2)')
-            self.E_R0 = (f"-1j*exp(-(t/{a})**2 - 1j*omega*t) * (-2*t/{a}**2*(4*t**2/{a}**4 - "
-                         f"3*omega**2 - 6/{a}**2)*sin(omega*t) - 1j*omega*(12*t**2/{a}**4 - "
-                         f"omega**2 - 6/{a}**2)*cos(omega*t))")
+            a2 = "(1/(tau/2)**2)"
+            env = f"-1j*exp(-t**2*{a2} - 1j*omega*t)"
+            self.g_expr = env
+            self.gdot_expr = f'{env} * (-2*t*{a2} - 1j*omega)'
+            self.gdotdot_expr = (f'{env} * (4*t**2*{a2}**2 - 2*{a2} - omega**2 + 4j*t*omega*{a2})')
+            self.E_R0 = (f"{env} * (-2*t*{a2}*(4*t**2*{a2}**2 - 3*omega**2 - 6*{a2})*sin(omega*t)"
+                         f" - 1j*omega*(12*t**2*{a2}**2 - omega**2 - 6*{a2})*cos(omega*t))")
             
         self.check_energy()
 
