@@ -150,12 +150,12 @@ class DipoleAnalytic(ExplicitField):
         omega, tau = self.omega, self.tau
         cos_pref = 6*omega/(tau/2)**2 - 12*omega*t**2/(tau/2)**4 + omega**3
         sin_pref = 2*t/(tau/2)**2 * (4*t**2/(tau/2)**4 - 3*omega**2 - 6/(tau/2)**2)
-        E0 = 4/3/c**3 * np.exp(-t**2/(tau/2)**2) * (cos_pref + 1j*sin_pref)
+        E0 = 4/3/c**3 * np.exp(-t**2/(tau/2)**2) * (cos_pref*np.cos(omega*t) + sin_pref*np.sin(omega*t))
 
         Nx,Ny,Nz = self.Ex.shape
         self.Ex[Nx//2,Ny//2,Nz//2] = 0.
         self.Ey[Nx//2,Ny//2,Nz//2] = 0.
-        self.Ez[Nx//2,Ny//2,Nz//2] = ne.evaluate(self.E_R0, global_dict=self.__dict__)
+        self.Ez[Nx//2,Ny//2,Nz//2] = E0 #ne.evaluate(self.E_R0, global_dict=self.__dict__)
         # self.Ez[Nx//2,Ny//2,Nz//2] = 4/3*self.k**3*(1+6/(self.tau*self.omega)**2)*np.cos(self.omega*t)
 
         self.Bx[Nx//2,Ny//2,Nz//2] = 0.
