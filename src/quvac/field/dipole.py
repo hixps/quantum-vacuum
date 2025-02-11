@@ -24,7 +24,7 @@ class DipoleAnalytic(ExplicitField):
     focus_t: float
         Location of temporal focus
     theta, phi: float
-        Spherical angles of k-vector (in degrees),
+        Spherical angles of dipole moment d0 (in degrees),
         theta - angle with z-axis,
         phi - angle with x-axis
     beta: float
@@ -38,6 +38,8 @@ class DipoleAnalytic(ExplicitField):
         Energy
     '''
     def __init__(self, field_params, grid):
+        super().__init__(grid)
+        
         angles = "theta phi beta".split()
         for key, val in field_params.items():
             if key in angles:
