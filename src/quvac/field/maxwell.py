@@ -133,12 +133,12 @@ class MaxwellField(Field):
                 # E_out[idx][:] = self.tmp.astype(config.CDTYPE)
                 # self.EB_fftw.update_arrays(E_out[idx], E_out[idx])
                 self.EB_fftw[idx].execute()
-                E_out[idx][:] = self.EB[idx].astype(config.CDTYPE)
+                self.E_out[idx][:] = self.EB[idx].astype(config.CDTYPE)
             else:
                 # B_out[idx-3][:] = self.tmp.astype(config.CDTYPE)
                 # self.EB_fftw.update_arrays(B_out[idx-3], B_out[idx-3])
                 self.EB_fftw[idx].execute()
-                B_out[idx-3][:] = self.EB[idx].astype(config.CDTYPE)
+                self.B_out[idx-3][:] = self.EB[idx].astype(config.CDTYPE)
             # self.EB_fftw.execute()
             # ne.evaluate(self.EB_expr[idx], local_dict=self.EB_dict, out=self.tmp)
             # if idx < 3:
