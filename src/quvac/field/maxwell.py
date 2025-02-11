@@ -108,9 +108,9 @@ class MaxwellField(Field):
 
     # def calculate_field(self, t, E_out=None, B_out=None):
     def calculate_field(self, t, E_out=None, B_out=None):
-        # if E_out is None:
-        #     E_out = [np.zeros(self.grid_shape, dtype=config.CDTYPE) for _ in range(3)]
-        #     B_out = [np.zeros(self.grid_shape, dtype=config.CDTYPE) for _ in range(3)]
+        if E_out is None:
+            E_out = [np.zeros(self.grid_shape, dtype=config.CDTYPE) for _ in range(3)]
+            B_out = [np.zeros(self.grid_shape, dtype=config.CDTYPE) for _ in range(3)]
 
         # Calculate a1,a2 at time t
         self.a_dict.update({"t": t})
