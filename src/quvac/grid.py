@@ -113,8 +113,8 @@ def get_kmax_grid(field_params):
         w0 = field_params["w0"]
     elif "w0x" in field_params:
         w0 = min(field_params["w0x"], field_params["w0y"])
-    else:
-        w0 = c*tau
+    # else:
+    #     w0 = c*tau
 
     k = 2 * np.pi / lam
     theta *= pi / 180
@@ -155,6 +155,8 @@ def get_xyz_size(fields, box_size, grid_res=1, equal_resolution=False):
     if isinstance(fields, dict):
         fields = list(fields.values())
     box_size = np.array(box_size)
+    # filter out non-gaussian fields
+    fields = [field for field in fields if "w0" in field]
 
     kmax = np.zeros((3,))
     for field_params in fields:
