@@ -355,7 +355,7 @@ def get_simulation_fields(ini_file):
 
     fields = []
     for field_params in fields_params:
-        field = ExternalField(field_params, grid_xyz)
+        field = ExternalField([field_params], grid_xyz)
         fields.append(field)
     return fields
 
