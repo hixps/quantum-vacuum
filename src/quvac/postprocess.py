@@ -17,8 +17,10 @@ from scipy.ndimage import map_coordinates
 
 from quvac import config
 from quvac.field.maxwell import MaxwellMultiple
-from quvac.grid import GridXYZ, get_pol_basis
+from quvac.field.external_field import ExternalField
+from quvac.grid import GridXYZ, get_pol_basis, setup_grids
 from quvac.log import sph_interp_warn
+from quvac.utils import read_yaml
 
 logger = logging.getLogger("simulation")
 
@@ -341,3 +343,19 @@ class VacuumEmissionAnalyzer:
                 calculate_spherical=calculate_spherical,
                 spherical_params=spherical_params,
             )
+
+
+def get_simulation_fields(ini_file):
+    ini = read_yaml(ini_file)
+    fields_params = ini["fields"]
+    grid_params = ini["grid"]
+
+    grid_xyz, grid_t = setup_grids(fields_params, grid_params)
+    grid_xyz.get_k_grid()
+
+    fields = []
+    for field_params in fields_params:
+        field = ExternalField(field_params, grid_xyz)
+        fields.append(field)
+    return fields
+
