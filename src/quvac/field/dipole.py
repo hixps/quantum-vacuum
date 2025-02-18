@@ -214,7 +214,7 @@ def create_multibeam(params, n_beams=6, mode='belt', theta0=0):
     Create multibeam configuration from several focused pulses
     to approximate the dipole wave and achieve higher intensity
     at focus. Configuration follows from 
-    
+
     S. S. Bulanov, et al. "Multiple Colliding Electromagnetic Pulses: 
     A Way to Lower the Threshold of e+ e-Pair Production from Vacuum." 
     PRL 104.22 (2010): 220404.
@@ -222,12 +222,12 @@ def create_multibeam(params, n_beams=6, mode='belt', theta0=0):
     # distribute the energy
     W_per_beam = params['W'] / n_beams
     beams = {}
+    theta_c = 360/n_beams
     if mode == "sphere":
-        n_parts = n_beams // 3
+        n_beams = n_beams // 3
         phi_arr = [0, 45, -45]
 
     # create geometry
-    theta_c = 360/n_beams
     for i in range(n_beams):
         params_beam = deepcopy(params)
         params_beam['W'] = W_per_beam
