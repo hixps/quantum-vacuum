@@ -222,10 +222,10 @@ def create_multibeam(params, n_beams=6, mode='belt', theta0=0):
     # distribute the energy
     W_per_beam = params['W'] / n_beams
     beams = {}
-    theta_c = 360/n_beams
     if mode == "sphere":
         n_beams = n_beams // 3
         phi_arr = [0, 45, -45]
+    theta_c = 360/n_beams
 
     # create geometry
     for i in range(n_beams):
