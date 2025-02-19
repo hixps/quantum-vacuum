@@ -73,7 +73,7 @@ class ExplicitField(Field):
 
         for idx in range(3):
             self.Ef_fftw[idx].execute()
-            self.Ef[idx] *= self.exp_shift_after_fft
+            # self.Ef[idx] *= self.exp_shift_after_fft
 
         # Calculate a1, a2 coefficients
         Efx, Efy, Efz = self.Ef

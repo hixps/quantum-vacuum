@@ -17,8 +17,10 @@ from scipy.ndimage import map_coordinates
 
 from quvac import config
 from quvac.field.maxwell import MaxwellMultiple
-from quvac.grid import GridXYZ, get_pol_basis
+from quvac.field.external_field import ExternalField
+from quvac.grid import GridXYZ, get_pol_basis, setup_grids
 from quvac.log import sph_interp_warn
+from quvac.utils import read_yaml
 
 logger = logging.getLogger("simulation")
 
@@ -141,13 +143,17 @@ class VacuumEmissionAnalyzer:
         self.N_total = np.sum(self.N_xyz) * self.dVk
 
     def get_polarization_from_field(self):
-        field = MaxwellMultiple(self.fields_params, self.grid_xyz)
+        perp_field_params = self.fields_params[self.perp_field_idx]
+        field = MaxwellMultiple([perp_field_params], self.grid_xyz)
+        # field = MaxwellMultiple(self.fields_params, self.grid_xyz)
         a1, a2 = field.a1, field.a2
         Ex = ne.evaluate("e1x*a1 + e2x*a2", global_dict=self.__dict__)
         Ey = ne.evaluate("e1y*a1 + e2y*a2", global_dict=self.__dict__)
         Ez = ne.evaluate("e1z*a1 + e2z*a2", global_dict=self.__dict__)
         E = ne.evaluate("sqrt(Ex**2 + Ey**2 + Ez**2)")
-        efx, efy, efz = Ex / E, Ey / E, Ez / E
+        # E_inv = np.where(E/E.max() > 1e-15, np.nan_to_num(1. / E), 0.)
+        E_inv = np.nan_to_num(1. / E)
+        efx, efy, efz = Ex * E_inv, Ey * E_inv, Ez * E_inv
         return (efx, efy, efz)
 
     def _get_polarization_vector(self, angles, perp_type="optical axis"):
@@ -304,10 +310,11 @@ class VacuumEmissionAnalyzer:
         calculate_spherical=False,
         spherical_params=None,
     ):
+        self.perp_field_idx = perp_field_idx - 1
         angle_keys = "theta phi beta".split()
-        angles = [self.fields_params[perp_field_idx - 1][key] for key in angle_keys]
+        angles = [self.fields_params[self.perp_field_idx][key] for key in angle_keys]
         self.get_perp_signal(angles, perp_type=perp_type)
-        keys = "kx ky kz Np_xyz Np_total".split()
+        keys = "kx ky kz Np_xyz Np_total epx epy epz".split()
 
         if calculate_spherical:
             self.get_signal_on_sph_grid(key="Np_xyz", **spherical_params)
@@ -341,3 +348,19 @@ class VacuumEmissionAnalyzer:
                 calculate_spherical=calculate_spherical,
                 spherical_params=spherical_params,
             )
+
+
+def get_simulation_fields(ini_file):
+    ini = read_yaml(ini_file)
+    fields_params = ini["fields"]
+    grid_params = ini["grid"]
+
+    grid_xyz, grid_t = setup_grids(fields_params, grid_params)
+    grid_xyz.get_k_grid()
+
+    fields = []
+    for field_params in fields_params.values():
+        field = ExternalField([field_params], grid_xyz)
+        fields.append(field)
+    return fields
+

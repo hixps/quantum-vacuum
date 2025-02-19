@@ -7,6 +7,7 @@ import logging
 import os
 
 from quvac.field.abc import Field
+from quvac.field.dipole import DipoleAnalytic
 from quvac.field.gaussian import GaussianAnalytic
 from quvac.field.maxwell import MaxwellMultiple
 
@@ -62,6 +63,8 @@ class ExternalField(Field):
         match field_type:
             case "paraxial_gaussian_analytic":
                 field = GaussianAnalytic(field_params, self.grid_xyz)
+            case "dipole_analytic":
+                field = DipoleAnalytic(field_params, self.grid_xyz)
             case "maxwell":
                 field = MaxwellMultiple(
                     field_params, self.grid_xyz, nthreads=self.nthreads

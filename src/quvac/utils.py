@@ -8,6 +8,7 @@ import resource
 import zipfile
 from contextlib import contextmanager
 from pathlib import Path
+import shutil
 
 import numpy as np
 import pyfftw
@@ -106,3 +107,7 @@ def add_data_to_npz(save_path, data, create_npz=False):
             for file in archive:
                 key = file.split(".")[0]
                 np.save(file, data[key])
+
+
+def zip_directory_shutil(directory_path, output_path):
+    shutil.make_archive(output_path, 'zip', directory_path)
