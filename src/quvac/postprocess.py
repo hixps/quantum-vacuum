@@ -107,6 +107,33 @@ def integrate_spherical(arr, axs, axs_names=["k", "theta", "phi"],
     return integrand
 
 
+def get_simulation_fields(ini_file):
+    ini = read_yaml(ini_file)
+    fields_params = ini["fields"]
+    grid_params = ini["grid"]
+
+    grid_xyz, grid_t = setup_grids(fields_params, grid_params)
+    grid_xyz.get_k_grid()
+
+    fields = []
+    for field_params in fields_params.values():
+        field = ExternalField([field_params], grid_xyz)
+        fields.append(field)
+    return fields
+
+
+def get_a12_from_amplitudes(S1, S2, k):
+    '''
+    Given complex signal amplitudes S1 and S2, calculate
+    spectral coefficients a1 and a2 (similar to Maxwell fields)
+    k = kabs
+    '''
+    prefactor = 2*hbar*k/(epsilon_0*c)
+    a1 = S1 * prefactor
+    a2 = S2 * prefactor
+    return a1, a2
+
+
 class VacuumEmissionAnalyzer:
     """
     Calculates spectra and observables from amplitudes
@@ -238,9 +265,6 @@ class VacuumEmissionAnalyzer:
         return bgr_N_xyz
 
     def get_background(self, discernibility="angular", **interp_kwargs):
-        # bgr_field = MaxwellMultiple(self.fields_params, self.grid_xyz)
-        # bgr_N_xyz = self.get_photon_spectrum_from_a12(bgr_field.a1, bgr_field.a2)
-        # del bgr_field
         bgr_N_xyz = self.get_background_xyz(add_to_cls_dict=False)
 
         # Interpolate on spherical grid
@@ -275,6 +299,17 @@ class VacuumEmissionAnalyzer:
         self.N_disc = integrate_spherical(
             self.N_sph * self.discernible, self.spherical_grid
         )
+    
+    def get_signal_a12(self, add_signal_bg=False):
+        self.a1_sig, self.a2_sig = get_a12_from_amplitudes(self.S1, self.S2, self.kabs)
+        if add_signal_bg:
+            bgr_field = MaxwellMultiple(self.fields_params, self.grid_xyz)
+            a1_bgr, a2_bgr = bgr_field.a1, bgr_field.a2
+            self.a1_mix, self.a2_mix = self.a1_sig + a1_bgr, self.a2_sig + a2_bgr
+        self.a1_sig, self.a2_sig = [np.fft.fftshift(a) for a 
+                                    in (self.a1_sig,self.a2_sig)]
+        self.a1_mix, self.a2_mix = [np.fft.fftshift(a) for a 
+                                    in (self.a1_mix,self.a2_mix)]
 
     def write_data(self, keys):
         data = {key: getattr(self, key) for key in keys}
@@ -322,6 +357,14 @@ class VacuumEmissionAnalyzer:
         
         self.write_data(keys)
 
+    def get_mix_signal_bg(self, add_signal_bg=False):
+        self.get_signal_a12(add_signal_bg)
+
+        keys = "a1_sig a2_sig".split()
+        if add_signal_bg:
+            keys.extend("a1_mix a2_mix".split())
+        self.write_data(keys)
+
     def get_spectra(
         self,
         mode="total",
@@ -331,7 +374,8 @@ class VacuumEmissionAnalyzer:
         calculate_spherical=False,
         spherical_params=None,
         calculate_discernible=False,
-        discernibility="angular"
+        discernibility="angular",
+        add_signal_bg=False,
     ):
         if mode == "total":
             self.get_total_spectra(
@@ -348,19 +392,6 @@ class VacuumEmissionAnalyzer:
                 calculate_spherical=calculate_spherical,
                 spherical_params=spherical_params,
             )
-
-
-def get_simulation_fields(ini_file):
-    ini = read_yaml(ini_file)
-    fields_params = ini["fields"]
-    grid_params = ini["grid"]
-
-    grid_xyz, grid_t = setup_grids(fields_params, grid_params)
-    grid_xyz.get_k_grid()
-
-    fields = []
-    for field_params in fields_params.values():
-        field = ExternalField([field_params], grid_xyz)
-        fields.append(field)
-    return fields
+        elif mode == "mix_signal_bg":
+            self.get_mix_signal_bg(add_signal_bg=add_signal_bg)
 

@@ -205,13 +205,14 @@ def postprocess_simulation(ini_config, files, fields_params):
         "spherical_params": postprocess_params.get("spherical_params", {}),
         "calculate_discernible": postprocess_params.get("calculate_discernible", False),
         "discernibility": postprocess_params.get("discernibility", "angular"),
+        "add_signal_bg": postprocess_params.get("add_signal_bg", False),
     }
 
     # Do postprocessing
     postprocess_print = get_postprocess_info(postprocess_params)
     logger.info(postprocess_print)
 
-    modes = postprocess_params.get("modes", "total polarization").split()
+    modes = postprocess_params.get("modes", ["total", "polarization"])
     for mode in modes:
         save_path = files['spectra'].replace(".npz", f"_{mode}.npz")
         analyzer = VacuumEmissionAnalyzer(
