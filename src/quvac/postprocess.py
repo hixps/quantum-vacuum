@@ -131,7 +131,7 @@ def transform_S12_to_a12(S1, S2, k, transform="forward"):
     '''
     prefactor = np.sqrt(2*hbar*k/(epsilon_0*c))
     if transform == "backward":
-        prefactor = np.nan_to_num(1 / prefactor)
+        prefactor = np.where(prefactor != 0, 1 / prefactor, 0.)
     a1 = S1 * prefactor
     a2 = S2 * prefactor
     return a1, a2
