@@ -271,7 +271,7 @@ def get_box_size(fields_params, grid_params):
     transverse_size = perp_max * grid_params["transverse_factor"]
     longitudinal_size = tau_max * c * grid_params["longitudinal_factor"]
 
-    return transverse_size, longitudinal_size
+    return float(transverse_size), float(longitudinal_size)
 
 
 def create_dynamic_grid(fields_params, grid_params):
