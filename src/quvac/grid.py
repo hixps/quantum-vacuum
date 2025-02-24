@@ -93,9 +93,15 @@ def get_pol_basis(theta, phi):
     return e1, e2
 
 
-def get_kmax_grid(field_params):
+def check_keys(field_params, required_keys):
+    err_msg = f"Field parameters must have {required_keys} keys"
+    assert all(key in field_params for key in required_keys), err_msg
+
+
+def get_kmax_gaussian(field_params):
     """
     Calculates maximum k-vector along every dimension
+    for gaussian pulses
 
     Parameters:
     -----------
@@ -104,8 +110,7 @@ def get_kmax_grid(field_params):
         theta, phi in degrees
     """
     required_keys = "lam tau theta phi".split()
-    err_msg = f"Field parameters must have {required_keys} keys"
-    assert all(key in field_params for key in required_keys), err_msg
+    check_keys(field_params, required_keys)
 
     lam, tau = field_params["lam"], field_params["tau"]
     theta, phi = field_params["theta"], field_params["phi"]
@@ -113,8 +118,6 @@ def get_kmax_grid(field_params):
         w0 = field_params["w0"]
     elif "w0x" in field_params:
         w0 = min(field_params["w0x"], field_params["w0y"])
-    # else:
-    #     w0 = c*tau
 
     k = 2 * np.pi / lam
     theta *= pi / 180
@@ -123,6 +126,9 @@ def get_kmax_grid(field_params):
     ek = get_ek(theta, phi)
     e1, e2 = get_pol_basis(theta, phi)
 
+    # this is calculated from Fourier transform of transverse and longitudinal
+    # gaussian profiles:
+    # exp(-r**2/w0**2) -> exp(-w0**2*kperp**2/4) -> kperp_bw ~ 2*2/w0 
     kbw_perp = 4 / w0
     kbw_long = 8 / (c * tau)
 
@@ -133,6 +139,67 @@ def get_kmax_grid(field_params):
         kp = k0 + ek * kbw_long + kbw_perp * (np.cos(beta) * e1 + np.sin(beta) * e2)
         kmax = np.maximum(kmax, np.abs(kp))
 
+    return kmax
+
+
+def get_kmax_dipole(field_params):
+    """
+    Calculates maximum k-vector along every dimension
+    for dipole pulses.
+
+    l_para = 0.58*lam
+    L_perp = 0.4*lam
+
+    Length scales are taken from 
+    Gonoskov, Ivan, et al. "Dipole pulse theory: 
+    Maximizing the field amplitude from 4 π focused laser pulses." 
+    PRA 86.5 (2012): 053836.
+
+    Parameters:
+    -----------
+    field_params: dict
+        Required keys: lam, tau, theta, phi
+        theta, phi in degrees
+    """
+    required_keys = "lam tau theta phi".split()
+    check_keys(field_params, required_keys)
+
+    lam, tau, theta, phi = [field_params[k] for k in
+                            "lam tau theta phi".split()]
+
+    k = 2 * np.pi / lam
+    theta *= pi / 180
+    phi = phi * pi / 180 if np.sin(theta) != 0.0 else 0.0
+
+    ek = get_ek(theta, phi)
+    e1, e2 = get_pol_basis(theta, phi)
+
+    l_long = 0.58*lam
+    l_perp = 0.4*lam
+    tau_bw = 8 / (c * tau)
+
+    # Add up bandwidth coming from time and length scales
+    kbw_perp = 4 / l_perp + tau_bw
+    kbw_long = 4 / l_long + tau_bw
+
+    k0 = ek * k
+    kmax = np.abs(k0 + ek * kbw_long)
+
+    for beta in np.linspace(0, 2 * np.pi, 64, endpoint=False):
+        kp = k0 + ek * kbw_long + kbw_perp * (np.cos(beta) * e1 + np.sin(beta) * e2)
+        kmax = np.maximum(kmax, np.abs(kp))
+    
+    return kmax
+
+
+def get_kmax_grid(field_params):
+    ftype = field_params["field_type"]
+    if "gaussian" in ftype:
+        kmax = get_kmax_gaussian(field_params)
+    elif "dipole" in ftype:
+        kmax = get_kmax_dipole(field_params)
+    else:
+        raise NotImplementedError(f"{ftype} field type is not supported")
     return kmax
 
 
@@ -156,7 +223,7 @@ def get_xyz_size(fields, box_size, grid_res=1, equal_resolution=False):
         fields = list(fields.values())
     box_size = np.array(box_size)
     # filter out non-gaussian fields
-    fields = [field for field in fields if "w0" in field]
+    # fields = [field for field in fields if "w0" in field]
 
     kmax = np.zeros((3,))
     for field_params in fields:
