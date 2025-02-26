@@ -1,11 +1,16 @@
 """
-This script implements:
+Functions for creating spatial and temporal grids.
 
-1. ``GridXYZ`` class that calculates necessary variables 
-for spatial grid and its Fourier counterpart.
+1. ``GridXYZ`` class that calculates the spatial grid and its 
+Fourier counterpart.
 
 2. Helper function ``setup_grids`` that automatically creates 
 grids either dynamically or from given grid sizes.
+
+.. warning::
+    The dynamic grid creation is experimental and should be used with caution.
+    Especially, when testing on new physical problems, it is recommended to
+    visualize participating Maxwell fields and check the grid sizes.
 
 .. note::
     Parts of dynamical grid creation for gaussian beams were initially
@@ -23,9 +28,9 @@ from scipy.constants import c, pi
 from quvac import config
 
 
-class GridXYZ(object):
+class GridXYZ:
     """
-    Calculates space grid and its Fourier counterpart.
+    Calculates spatial grid and its Fourier counterpart.
 
     Parameters
     ----------
@@ -168,28 +173,30 @@ def _check_keys(field_params, required_keys):
 
 def gaussian_bandwidth(field_params):
     """
-    Calculate the Gaussian bandwidth.
+    Calculate the gaussian bandwidth.
 
     Parameters
     ----------
     field_params : dict
         Dictionary containing the field parameters. Required keys are:
-
-        - tau : float
-            Pulse duration.
-        - w0 : float, optional
-            Beam waist. If 'w0' is not provided, 'w0x' and 'w0y' are used.
+            - tau : float
+                Pulse duration.
+            - w0 : float, optional
+                Beam waist. If 'w0' is not provided, 'w0x' and 'w0y' are used.
 
     Returns
     -------
     tuple of float
-        A tuple containing the perpendicular and longitudinal bandwidths (kbw_perp, kbw_long).
+        A tuple containing the perpendicular and longitudinal bandwidths 
+        kbw_perp, kbw_long).
 
     Notes
     -----
-    The bandwidths are calculated from the Fourier transform of transverse and longitudinal
-    Gaussian profiles:
+    The bandwidths are calculated from the Fourier transform of transverse and 
+    longitudinal Gaussian profiles:
+
     - exp(-r**2/w0**2) -> exp(-w0**2*kperp**2/4) -> kperp_bw ~ 2*2/w0
+    
     - exp(-t**2/(tau/2)**2) -> exp(-tau**2*k**2/16) -> k_long ~ 2*4/(c*tau)
     """
     tau = field_params["tau"]
@@ -214,22 +221,22 @@ def dipole_bandwidth(field_params):
     ----------
     field_params : dict
         Dictionary containing the field parameters. Required keys are:
-
-        - lam : float
-            Wavelength of the pulse.
-        - tau : float
-            Pulse duration.
+            - lam : float
+                Wavelength of the pulse.
+            - tau : float
+                Pulse duration.
 
     Returns
     -------
     tuple of float
-        A tuple containing the perpendicular and longitudinal bandwidths (kbw_perp, kbw_long).
+        A tuple containing the perpendicular and longitudinal bandwidths 
+        (kbw_perp, kbw_long).
 
     Notes
     -----
     The length scales are taken from:
-    Gonoskov, Ivan, et al. "Dipole pulse theory: Maximizing the field amplitude from 4π focused laser pulses."
-    Physical Review A 86.5 (2012): 053836.
+    I. Gonoskov et al. "Dipole pulse theory: Maximizing the field amplitude 
+    from 4π focused laser pulses." PRA 86.5 (2012): 053836.
 
     l_para = 0.58 * lam
     l_perp = 0.4 * lam
@@ -283,15 +290,14 @@ def get_kmax_from_bw(field_params):
     ----------
     field_params : dict
         Dictionary containing the field parameters. Required keys are:
-
-        - lam : float
-            Wavelength of the pulse.
-        - tau : float
-            Pulse duration.
-        - theta : float
-            Polar angle in degrees.
-        - phi : float
-            Azimuthal angle in degrees.
+            - lam : float
+                Wavelength of the pulse.
+            - tau : float
+                Pulse duration.
+            - theta : float
+                Polar angle in degrees.
+            - phi : float
+                Azimuthal angle in degrees.
 
     Returns
     -------
@@ -300,7 +306,8 @@ def get_kmax_from_bw(field_params):
 
     Notes
     -----
-    The maximum k-vector is calculated based on the bandwidths derived from the field parameters.
+    The maximum k-vector is calculated based on the bandwidths derived from the 
+    field parameters.
     """
     required_keys = "lam tau theta phi".split()
     _check_keys(field_params, required_keys)
@@ -355,7 +362,7 @@ def get_kmax_grid(field_params):
 
 def get_xyz_size(fields, box_size, grid_res=1, equal_resolution=False):
     """
-    Calculate the necessary spatial resolution.
+    Calculate necessary spatial resolution.
 
     Parameters
     ----------
@@ -422,19 +429,18 @@ def get_box_size(fields_params, grid_params):
     ----------
     fields_params : list of dict
         Parameters of participating fields. Each dictionary should contain:
-
-        - field_type : str
-            Type of the field.
-        - w0 : float, optional
-            Beam waist for focused fields.
-        - tau : float, optional
-            Pulse duration.
+            - field_type : str
+                Type of the field.
+            - w0 : float, optional
+                Beam waist for focused fields.
+            - tau : float, optional
+                Pulse duration.
     grid_params : dict
         Grid parameters. Required keys are:
-        - transverse_factor : float
-            Factor to scale the transverse size.
-        - longitudinal_factor : float
-            Factor to scale the longitudinal size.
+            - transverse_factor : float
+                Factor to scale the transverse size.
+            - longitudinal_factor : float
+                Factor to scale the longitudinal size.
 
     Returns
     -------
@@ -523,51 +529,50 @@ def setup_grids(fields_params, grid_params):
     ----------
     fields_params : list of dict
         Parameters of participating fields. Each dictionary should contain:
-
-        - field_type : str
-            Type of the field.
-        - lam : float
-            Wavelength of the pulse.
-        - w0 : float, optional
-            Beam waist for focused fields.
-        - tau : float, optional
-            Pulse duration.
+            - field_type : str
+                Type of the field.
+            - lam : float
+                Wavelength of the pulse.
+            - w0 : float, optional
+                Beam waist for focused fields.
+            - tau : float, optional
+                Pulse duration.
 
     grid_params : dict
         Grid parameters. Required keys are:
-
-        -  mode : str
-            Mode of grid creation ('dynamic' or 'static').
-        - box_xyz : tuple of float
-            Box size for the spatial grid (required for 'static' mode).
-        - Nxyz : tuple of int
-            Number of grid points along each spatial dimension (required for 'static' mode).
-        - Nt : int
-            Number of temporal points.
-        - box_t : float or tuple of float
-            Time duration or start and end times for the temporal grid.
-        - spatial_resolution : float or list of float, optional
-            Controls the spatial resolution (required for 'dynamic' mode).
-        - time_resolution : float, optional
-            Controls the temporal resolution (required for 'dynamic' mode).
-        - collision_geometry : str, optional
-            Specifies the collision geometry ('x', 'y', 'z') (required for 'dynamic' mode).
-        - transverse_factor : float, optional
-            Factor to scale the transverse size (required for 'dynamic' mode).
-        - longitudinal_factor : float, optional
-            Factor to scale the longitudinal size (required for 'dynamic' mode).
-        - time_factor : float, optional
-            Factor to scale the time duration (required for 'dynamic' mode).
+            -  mode : str
+                Mode of grid creation ('dynamic' or 'static').
+        Keys for 'static' mode:
+            - box_xyz : tuple of float
+                Box size for the spatial grid.
+            - Nxyz : tuple of int
+                Number of grid points along each spatial dimension.
+            - Nt : int
+                Number of temporal points.
+            - box_t : float or tuple of float
+                Time duration or start and end times for the temporal grid.
+        Keys for 'dynamic' mode:
+            - spatial_resolution : float or list of float
+                Controls the spatial resolution.
+            - time_resolution : float
+                Controls the temporal resolution.
+            - collision_geometry : str
+                Specifies the collision geometry ('x', 'y', 'z').
+            - transverse_factor : float
+                Factor to scale the transverse size.
+            - longitudinal_factor : float
+                Factor to scale the longitudinal size.
+            - time_factor : float
+                Factor to scale the time duration.
 
     Returns
     -------
     tuple
         A tuple containing:
-
-        - grid_xyz : GridXYZ
-            The spatial grid object.
-        - grid_t : numpy.ndarray
-            The temporal grid array.
+            - grid_xyz : GridXYZ
+                The spatial grid object.
+            - grid_t : numpy.ndarray
+                The temporal grid array.
 
     Notes
     -----
