@@ -239,6 +239,7 @@ def dipole_bandwidth(field_params):
     from 4π focused laser pulses." PRA 86.5 (2012): 053836.
 
     l_para = 0.58 * lam
+    
     l_perp = 0.4 * lam
     """
     lam, tau = [field_params[k] for k in "lam tau".split()]
@@ -399,7 +400,7 @@ def get_xyz_size(fields, box_size, grid_res=1, equal_resolution=False):
 
 def get_t_size(t_start, t_end, lam, grid_res=1):
     """
-    Calculates necessary temporal resolution.
+    Calculate necessary temporal resolution.
 
     Parameters
     ----------
