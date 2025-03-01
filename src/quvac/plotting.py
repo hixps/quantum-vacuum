@@ -1,4 +1,6 @@
-"Here we gather useful plotting functions"
+"""
+Useful plotting functions.
+"""
 
 import os
 from pathlib import Path
@@ -11,7 +13,14 @@ from scipy.constants import c, pi
 
 def save_fig(save_path, fig_name):
     """
-    Save figure to file
+    Save figure to file as png and pdf.
+
+    Parameters
+    ----------
+    save_path : str
+        Path to the directory where the figure will be saved.
+    fig_name : str
+        Name of the figure file.
     """
     if save_path is not None:
         Path(save_path).mkdir(parents=True, exist_ok=True)
@@ -21,6 +30,21 @@ def save_fig(save_path, fig_name):
 
 
 def pi_formatter(x, pos):
+    """
+    Format axis ticks as multiples of pi.
+
+    Parameters
+    ----------
+    x : float
+        Tick value.
+    pos : int
+        Tick position.
+
+    Returns
+    -------
+    str
+        Formatted tick label.
+    """
     fractions = {0: "0", np.pi/4: r"$\frac{\pi}{4}$", 
                  np.pi/2: r"$\frac{\pi}{2}$", 3*np.pi/4: r"$\frac{3\pi}{4}$",
                  np.pi: r"$\pi$", 5*np.pi/4: r"$\frac{5*\pi}{4}$",
@@ -29,7 +53,32 @@ def pi_formatter(x, pos):
     return fractions.get(x, f"${x/np.pi:.2g}\\pi$")
 
 
-def plot_mollweide(fig, ax, phi, theta, data, cmap='coolwarm', scale=None, norm=None):
+def plot_mollweide(fig, ax, phi, theta, data, cmap='coolwarm', norm=None):
+    """
+    Plot data on a Mollweide projection.
+
+    Parameters
+    ----------
+    fig : matplotlib.figure.Figure
+        Figure object.
+    ax : matplotlib.axes.Axes
+        Axes object.
+    phi : numpy.ndarray
+        Array of azimuthal angles.
+    theta : numpy.ndarray
+        Array of polar angles.
+    data : numpy.ndarray
+        Data to be plotted.
+    cmap : str, optional
+        Colormap, by default 'coolwarm'.
+    norm : matplotlib.colors.Normalize, optional
+        Normalization for the colormap, by default None.
+
+    Returns
+    -------
+    ax : matplotlib.axes.Axes
+        Axes object with the plot.
+    """
     theta_ = theta - np.pi/2
     phi_ = phi - np.pi
     phi_mesh, theta_mesh = np.meshgrid(phi_, theta_)
@@ -53,7 +102,33 @@ def plot_mollweide(fig, ax, phi, theta, data, cmap='coolwarm', scale=None, norm=
 def plot_fields(field, t, plot_keys=None, cmap='coolwarm',
                 cnorm='log', norm_lim=1e-20, save_path=None):
     """
-    Plot specified field components
+    Plot specified field components.
+
+    Plotted figures:
+    1. (x,y) and (x,z) profiles at the focus.
+    2. x, y, z slices through the focus.
+
+    Parameters
+    ----------
+    field : quvac.field.Field
+        Field object containing the field data.
+    t : float
+        Time at which to plot the field.
+    plot_keys : list of str, optional
+        List of field components to plot, by default None.
+    cmap : str, optional
+        Colormap, by default 'coolwarm'.
+    cnorm : str, optional
+        Normalization type, by default 'log'.
+    norm_lim : float, optional
+        Normalization limit, by default 1e-20.
+    save_path : str, optional
+        Path to save the plots, by default None.
+
+    Returns
+    -------
+    field_comps : dict
+        Dictionary containing the field components.
     """
     Nxyz = field.grid_xyz.grid_shape
     E_out, B_out = [[np.zeros(Nxyz, dtype=np.complex128) for _ in range(3)]

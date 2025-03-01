@@ -1,8 +1,17 @@
 """
-Here we provide analyzer classes that calculate from amplitudes:
-    - Total (polarization insensitive) signal
-    - Polarization sensitive signal
-    - Discernible signal
+Analyzer class that calculate different observables from amplitudes.
+
+Currently supports:
+
+1. Total (polarization insensitive) signal.
+2. Polarization sensitive signal:
+    - As a projection to fixed optical axis.
+    - As a projection to local polarization axis.
+    - 3 stokes parameters (P1, P2, P3) for arbitrary 
+      linear polarization basis.
+
+3. Discernible signal.
+4. Background field spectra.
 """
 
 import logging
@@ -22,16 +31,51 @@ from quvac.grid import GridXYZ, get_pol_basis, setup_grids
 from quvac.log import sph_interp_warn
 from quvac.utils import read_yaml
 
-logger = logging.getLogger("simulation")
+_logger = logging.getLogger("simulation")
 
 
 def get_polarization_vector(theta, phi, beta):
+    """
+    Calculate the polarization vector.
+
+    Parameters
+    ----------
+    theta : float
+        Polar angle (in radians).
+    phi : float
+        Azimuthal angle (in radians).
+    beta : float
+        Polarization angle (in radians).
+
+    Returns
+    -------
+    ep : numpy.ndarray
+        Polarization vector.
+    """
     e1, e2 = get_pol_basis(theta, phi)
-    ep = e1 * np.cos(beta, dtype=config.FDTYPE) + e2 * np.sin(beta, dtype=config.FDTYPE)
+    ep =(e1 * np.cos(beta, dtype=config.FDTYPE) + 
+         e2 * np.sin(beta, dtype=config.FDTYPE))
     return ep
 
 
 def sph2cart(r, theta, phi):
+    """
+    Convert spherical coordinates to Cartesian coordinates.
+
+    Parameters
+    ----------
+    r : numpy.ndarray
+        Radial distance.
+    theta : numpy.ndarray
+        Polar angle.
+    phi : numpy.ndarray
+        Azimuthal angle.
+
+    Returns
+    -------
+    x, y, z : numpy.ndarray
+        Cartesian coordinates.
+    """
     x = r * np.sin(theta) * np.cos(phi)
     y = r * np.sin(theta) * np.sin(phi)
     z = r * np.cos(theta) * np.ones_like(phi)
@@ -39,6 +83,21 @@ def sph2cart(r, theta, phi):
 
 
 def xyz2idx(xyz, xyz_grid):
+    """
+    Convert Cartesian coordinates to array indices.
+
+    Parameters
+    ----------
+    xyz : tuple of numpy.ndarray
+        Cartesian coordinates.
+    xyz_grid : tuple of numpy.ndarray
+        Cartesian grid.
+
+    Returns
+    -------
+    idxs : numpy.ndarray
+        Array indices.
+    """
     nx, ny, nz = xyz[0].shape
     idxs = np.empty((3, nx, ny, nz))
     for i, (x, grid) in enumerate(zip(xyz, xyz_grid)):
@@ -48,11 +107,34 @@ def xyz2idx(xyz, xyz_grid):
 
 
 def cartesian_to_spherical_array(
-    arr, xyz_grid, spherical_grid=None, angular_resolution=None, **interp_kwargs
+    arr, xyz_grid, spherical_grid=None, angular_resolution=None,
+    **interp_kwargs
 ):
     """
-    Transforms an array with data on cartesian grid to the
-    array with data on spherical grid
+    Transform an array with data on Cartesian grid to the array with data 
+    on spherical grid.
+
+    Parameters
+    ----------
+    arr : numpy.ndarray
+        Array with data on Cartesian grid.
+    xyz_grid : quvac.grid.GridXYZ
+        Cartesian grid object.
+    spherical_grid : tuple or str, optional
+        Spherical grid or path to the file containing the spherical grid, 
+        by default None.
+    angular_resolution : float, optional
+        Angular resolution, by default None.
+    **interp_kwargs : dict
+        Additional interpolation parameters. Currently not used, implement 
+        in the future.
+
+    Returns
+    -------
+    spherical_grid : tuple
+        Spherical grid.
+    arr_sph : numpy.ndarray
+        Array with data on spherical grid.
     """
     # Calculate spherical grid if not given
     if not spherical_grid:
@@ -75,17 +157,49 @@ def cartesian_to_spherical_array(
 
     # Convert cartesian coordinates to array idx
     idxs = xyz2idx(xyz_for_sph, xyz_grid.kgrid_shifted)
-    # idxs = np.stack(idxs, axis=0)
 
     # Interpolate data on a desired grid
+    # interpolation_kwargs should be implemented here
     arr_sph = map_coordinates(arr, idxs, order=1)
     return spherical_grid, arr_sph
 
 
 def integrate_spherical(arr, axs, axs_names=["k", "theta", "phi"],
                         axs_integrate=["k", "theta", "phi"]):
+    """
+    Integrate an array over spherical coordinates.
+
+    Parameters
+    ----------
+    arr : numpy.ndarray
+        Array to be integrated.
+    axs : list of numpy.ndarray
+        List of axes.
+    axs_names : list of str, optional
+        List of axis names, by default ["k", "theta", "phi"].
+    axs_integrate : list of str, optional
+        List of axes to integrate over, by default ["k", "theta", "phi"].
+
+    Returns
+    -------
+    integrand : numpy.ndarray
+        Integrated array.
+
+    Raises
+    ------
+    AssertionError
+        Axes of array and axs names do not match.
+
+    Notes
+    -----
+    We assume that the array is given on a spherical grid without
+    the jacobian factor, therefore the array is mutiplied by k**2 sin(theta).
+    
+    The function uses trapezoidal rule for integration.
+    """
     err_msg = "Axes of array and axs names do not match"
-    assert len(axs) == len(axs_names) and len(axs) >= len(axs_integrate), err_msg
+    condition = len(axs) == len(axs_names) and len(axs) >= len(axs_integrate)
+    assert condition, err_msg
 
     axs_names_ = axs_names.copy()
 
@@ -108,6 +222,19 @@ def integrate_spherical(arr, axs, axs_names=["k", "theta", "phi"],
 
 
 def get_simulation_fields(ini_file):
+    """
+    Get simulation fields from an initialization file.
+
+    Parameters
+    ----------
+    ini_file : str
+        Path to the initialization file.
+
+    Returns
+    -------
+    fields : list of quvac.field.ExternalField
+        List of field objects.
+    """
     ini = read_yaml(ini_file)
     fields_params = ini["fields"]
     grid_params = ini["grid"]
@@ -123,12 +250,30 @@ def get_simulation_fields(ini_file):
 
 
 def transform_S12_to_a12(S1, S2, k, transform="forward"):
-    '''
-    Given complex signal amplitudes S1 and S2, calculate
-    spectral coefficients a1 and a2 (similar to Maxwell fields)
-    k = kabs
-    backwars transform corresponds to a12 -> S12
-    '''
+    """
+    Calculate spectral coefficients a1 and a2 from complex signal
+    amplitudes S1 and S2.
+
+    Parameters
+    ----------
+    S1 : numpy.ndarray
+        Complex signal amplitude S1.
+    S2 : numpy.ndarray
+        Complex signal amplitude S2.
+    k : numpy.ndarray
+        Wave number.
+    transform : str, optional
+        Transformation direction, by default "forward".
+
+    Returns
+    -------
+    a1, a2 : numpy.ndarray
+        Spectral coefficients a1 and a2.
+
+    Notes
+    -----
+    The backward transform corresponds to a12 -> S12.
+    """
     prefactor = np.sqrt(2*hbar*k/(epsilon_0*c))
     if transform == "backward":
         prefactor = np.where(prefactor != 0, 1 / prefactor, 0.)
@@ -138,6 +283,27 @@ def transform_S12_to_a12(S1, S2, k, transform="forward"):
 
 
 def get_spectra_from_Stokes(P0, P1, P2, P3, basis="linear"):
+    """
+    Calculate spectra from Stokes parameters.
+
+    Parameters
+    ----------
+    P0 : numpy.ndarray
+        Stokes parameter P0.
+    P1 : numpy.ndarray
+        Stokes parameter P1.
+    P2 : numpy.ndarray
+        Stokes parameter P2.
+    P3 : numpy.ndarray
+        Stokes parameter P3.
+    basis : str, optional
+        Polarization basis, by default "linear".
+
+    Returns
+    -------
+    Nf, Np : numpy.ndarray
+        Parallel and perpendicular-polarized spectra.
+    """
     match basis:
         case "linear":
             P = P1
@@ -152,14 +318,32 @@ def get_spectra_from_Stokes(P0, P1, P2, P3, basis="linear"):
 
 class VacuumEmissionAnalyzer:
     """
-    Calculates spectra and observables from amplitudes
-    provided by quvac.integrator.vacuum_emission.VacuumEmission
-    class
+    Calculates spectra and observables from amplitudes.
 
-    Currently supports:
-        - Differential polarization-(in)sensitive spectrum on (kx,ky,kz) grid
-        - Differential polarization-(in)sensitive spectrum on (k,theta,phi) grid
-        - Total signal
+    Amplitudes are provided by 
+    ``quvac.integrator.vacuum_emission.VacuumEmission`` class.
+
+    Parameters
+    ----------
+    fields_params : dict
+        Dictionary containing the field parameters.
+    data_path : str
+        Path to the data file.
+    save_path : str, optional
+        Path to save the results, by default None.
+
+    Attributes
+    ----------
+    fields_params : dict
+        Dictionary containing the field parameters.
+    grid_xyz : quvac.grid.GridXYZ
+        The spatial grid object.
+    S1 : numpy.ndarray
+        Complex signal amplitude S1.
+    S2 : numpy.ndarray
+        Complex signal amplitude S2.
+    save_path : str
+        Path to save the results.
     """
 
     def __init__(self, fields_params, data_path, save_path=None):
@@ -173,19 +357,32 @@ class VacuumEmissionAnalyzer:
         self.__dict__.update(self.grid_xyz.__dict__)
 
         for ax in "xyz":
-            self.__dict__[f"k{ax}"] = np.fft.fftshift(self.__dict__[f"k{ax}"])
+            kx = getattr(self, f"k{ax}")
+            setattr(self, f"k{ax}", np.fft.fftshift(kx))
+            # self.__dict__[f"k{ax}"] = np.fft.fftshift(kx)
 
         self.S1, self.S2 = data["S1"].astype(config.CDTYPE), data["S2"].astype(config.CDTYPE)
 
         self.save_path = save_path
 
     def get_total_signal(self):
+        """
+        Calculates the total signal.
+        """
         S = self.S1.real**2 + self.S1.imag**2 + self.S2.real**2 + self.S2.imag**2
         self.N_xyz = np.fft.fftshift(S / (2 * pi) ** 3)
 
         self.N_total = np.sum(self.N_xyz) * self.dVk
 
     def get_polarization_from_field(self):
+        """
+        Calculates the polarization from the field.
+
+        Returns
+        -------
+        tuple
+            Tuple containing the polarization components (efx, efy, efz).
+        """
         perp_field_params = self.fields_params[self.perp_field_idx]
         field = MaxwellMultiple([perp_field_params], self.grid_xyz)
         a1, a2 = field.a1, field.a2
@@ -193,17 +390,28 @@ class VacuumEmissionAnalyzer:
         Ey = ne.evaluate("e1y*a1 + e2y*a2", global_dict=self.__dict__)
         Ez = ne.evaluate("e1z*a1 + e2z*a2", global_dict=self.__dict__)
         E = ne.evaluate("sqrt(Ex**2 + Ey**2 + Ez**2)")
-        # E_inv = np.where(E/E.max() > 1e-15, np.nan_to_num(1. / E), 0.)
         E_inv = np.nan_to_num(1. / E)
         efx, efy, efz = Ex * E_inv, Ey * E_inv, Ez * E_inv
         return (efx, efy, efz)
 
     def _get_polarization_vector(self, angles, perp_type="optical axis"):
-        '''
-        Calculate polarization vectors parallel to chosen axis and perp to it
-        ef - field polarization (parallel)
-        ep - perp polarization
-        '''
+        """
+        Calculates polarization vectors parallel to chosen axis and 
+        perpendicular to it.
+
+        Parameters
+        ----------
+        angles : tuple
+            Tuple containing the angles (theta, phi, beta).
+        perp_type : str, optional
+            Type of perpendicular polarization, by default "optical axis".
+
+        Returns
+        -------
+        tuple
+            Tuple containing the parallel and perpendicular polarization 
+            components.
+        """
         if perp_type == "optical axis":
             self.efx, self.efy, self.efz = get_polarization_vector(*angles)
             angles[-1] += pi / 2
@@ -223,11 +431,18 @@ class VacuumEmissionAnalyzer:
     def get_perp_signal(self, angles, perp_type="optical axis",
                         stokes=False):
         """
-        angles (theta, phi, beta): (float, float, float)
-            Euler angles for field polarization (in degrees)
+        Calculates the perpendicular signal.
+
+        Parameters
+        ----------
+        angles : tuple
+            Tuple containing the angles (theta, phi, beta) in degrees.
+        perp_type : str, optional
+            Type of perpendicular polarization, by default "optical axis".
+        stokes : bool, optional
+            Whether to calculate Stokes parameters, by default False.
         """
         angles = [angle * pi / 180 for angle in angles]
-        # Here we make sure that perp polarization would be calculated
 
         # get one polarization direction to project on:
         self.ef, self.ep = self._get_polarization_vector(angles, perp_type)
@@ -248,13 +463,19 @@ class VacuumEmissionAnalyzer:
     def get_Stokes_vector_for_ep(self):
         '''
         Given amplitudes S1,S2 for arbitrary linear polarization
-        basis e1,e2, calculate Stokes vectors for detector ep
+        basis e1,e2, calculate Stokes vectors for detector ep.
 
         For given ef (||) and ep (perp):
-        P0 = N_xyz = (S_||)**2 + (S_perp)**2
-        P1 = (S_||)**2 - (S_perp)**2
-        P2 = (S_45)**2 - (S_-45)**2     - difference of linear polarizations in 45 basis
-        P3 = (S_right)**2 - (S_left)**2 - difference of circular polarizations
+            - P0 = N_xyz = (S_||)**2 + (S_perp)**2
+
+            - P1 = (S_||)**2 - (S_perp)**2
+            
+            - P2 = (S_45)**2 - (S_135)**2     - difference of linear 
+              polarizations in 45 basis.
+            
+            - P3 = (S_right)**2 - (S_left)**2 - difference of circular 
+              polarizations.
+
         '''
         e1x, e1y, e1z = self.e1x, self.e1y, self.e1z
         e2x, e2y, e2z = self.e2x, self.e2y, self.e2z
@@ -275,6 +496,24 @@ class VacuumEmissionAnalyzer:
         self, key="N_xyz", spherical_grid=None, angular_resolution=None,
         check_total=False, **interp_kwargs
     ):
+        """
+        Transforms an array with data on Cartesian grid to the array with 
+        data on spherical grid.
+
+        Parameters
+        ----------
+        key : str, optional
+            Key for the data array, by default "N_xyz".
+        spherical_grid : tuple or str, optional
+            Spherical grid or path to the file containing the spherical grid,
+            by default None.
+        angular_resolution : float, optional
+            Angular resolution, by default None.
+        check_total : bool, optional
+            Whether to check the total signal, by default False.
+        **interp_kwargs : dict
+            Additional interpolation parameters.
+        """
         arr = getattr(self, key)
         spherical_grid, N_sph = cartesian_to_spherical_array(
             arr,
@@ -290,22 +529,37 @@ class VacuumEmissionAnalyzer:
             sph_key = key + '_sph'
             total_key = key + "_total"
         sph_total_key = f"{sph_key}_total"
-        self.__dict__[sph_key] = N_sph
+        setattr(self, sph_key, N_sph)
 
         if check_total:
             N_total = integrate_spherical(N_sph, spherical_grid)
-            self.__dict__[sph_total_key] = N_total
+            setattr(self, sph_total_key, N_total)
 
-            if not np.isclose(self.__dict__[total_key], N_total, rtol=1e-2):
+            if not np.isclose(getattr(self, total_key), N_total, rtol=1e-2):
                 warn_message = sph_interp_warn.format(
-                    total_key, self.__dict__[total_key], N_total
+                    total_key, getattr(self, total_key), N_total
                 )
                 warnings.warn(warn_message)
-                logger.warning(warn_message)
+                _logger.warning(warn_message)
 
         self.spherical_grid = self.k, self.theta, self.phi = spherical_grid
 
     def get_photon_spectrum_from_a12(self, a1, a2):
+        """
+        Calculates the photon spectrum from spectral coefficients a1 and a2.
+
+        Parameters
+        ----------
+        a1 : numpy.ndarray
+            Spectral coefficient a1.
+        a2 : numpy.ndarray
+            Spectral coefficient a2.
+
+        Returns
+        -------
+        numpy.ndarray
+            Photon spectrum.
+        """
         prefactor = 0.5 * epsilon_0 * c / hbar
         k = self.kabs
         N_xyz = ne.evaluate(
@@ -315,6 +569,22 @@ class VacuumEmissionAnalyzer:
         return np.fft.fftshift(N_xyz)
     
     def get_background_xyz(self, add_to_cls_dict=True, bgr_idx=None):
+        """
+        Calculates the background field spectra on Cartesian grid.
+
+        Parameters
+        ----------
+        add_to_cls_dict : bool, optional
+            Whether to add the background spectra to the class dictionary, 
+            by default True.
+        bgr_idx : int, optional
+            Index of the background field, by default None.
+
+        Returns
+        -------
+        numpy.ndarray
+            Background field spectra.
+        """
         if bgr_idx is not None:
             bgr_field = MaxwellMultiple(self.fields_params[bgr_idx], self.grid_xyz)
         else:
@@ -326,6 +596,23 @@ class VacuumEmissionAnalyzer:
 
     def get_background(self, discernibility="angular", bgr_idx=None,
                        **interp_kwargs):
+        """
+        Calculates the background field spectra.
+
+        Parameters
+        ----------
+        discernibility : str, optional
+            Type of discernibility, by default "angular".
+        bgr_idx : int, optional
+            Index of the background field, by default None.
+        **interp_kwargs : dict
+            Additional interpolation parameters.
+
+        Returns
+        -------
+        numpy.ndarray
+            Background field spectra.
+        """
         bgr_N_xyz = self.get_background_xyz(add_to_cls_dict=False, bgr_idx=bgr_idx)
 
         # Interpolate on spherical grid
@@ -344,6 +631,14 @@ class VacuumEmissionAnalyzer:
         return bgr_N_sph
 
     def get_discernible_signal(self, discernibility="angular"):
+        """
+        Calculates the discernible signal.
+
+        Parameters
+        ----------
+        discernibility : str, optional
+            Type of discernibility, by default "angular".
+        """
         # Calculate numerical background
         self.background = self.get_background(discernibility=discernibility)
 
@@ -362,6 +657,14 @@ class VacuumEmissionAnalyzer:
         )
     
     def get_signal_a12(self, add_signal_bg=False):
+        """
+        Calculates the spectral coefficients a1 and a2 from signal amplitudes S1 and S2.
+
+        Parameters
+        ----------
+        add_signal_bg : bool, optional
+            Whether to add the background signal, by default False.
+        """
         self.a1_sig, self.a2_sig = transform_S12_to_a12(self.S1, self.S2, self.kabs)
         if add_signal_bg:
             bgr_field = MaxwellMultiple(self.fields_params, self.grid_xyz)
@@ -373,6 +676,14 @@ class VacuumEmissionAnalyzer:
                                     in (self.a1_mix,self.a2_mix)]
 
     def write_data(self, keys):
+        """
+        Writes the data to a file.
+
+        Parameters
+        ----------
+        keys : list of str
+            List of keys for the data to be written.
+        """
         data = {key: getattr(self, key) for key in keys}
         np.savez(self.save_path, **data)
 
@@ -385,6 +696,26 @@ class VacuumEmissionAnalyzer:
         calculate_discernible=False,
         discernibility="angular",
     ):
+        """
+        Calculates the total spectra.
+
+        Parameters
+        ----------
+        calculate_xyz_background : bool, optional
+            Whether to calculate the background spectra on Cartesian grid, 
+            by default False.
+        bgr_idx : int, optional
+            Index of the background field, by default None.
+        calculate_spherical : bool, optional
+            Whether to calculate the spectra on spherical grid,
+            by default False.
+        spherical_params : dict, optional
+            Parameters for the spherical grid, by default None.
+        calculate_discernible : bool, optional
+            Whether to calculate the discernible signal, by default False.
+        discernibility : str, optional
+            Type of discernibility, by default "angular".
+        """
         self.get_total_signal()
         keys = "kx ky kz N_xyz N_total".split()
 
@@ -409,6 +740,23 @@ class VacuumEmissionAnalyzer:
         spherical_params=None,
         stokes=False,
     ):
+        """
+        Calculates the polarization spectra.
+
+        Parameters
+        ----------
+        perp_field_idx : int, optional
+            Index of the perpendicular field, by default 1.
+        perp_type : str, optional
+            Type of perpendicular polarization, by default None.
+        calculate_spherical : bool, optional
+            Whether to calculate the spectra on spherical grid,
+            by default False.
+        spherical_params : dict, optional
+            Parameters for the spherical grid, by default None.
+        stokes : bool, optional
+            Whether to calculate Stokes parameters, by default False.
+        """
         self.perp_field_idx = perp_field_idx - 1
         angle_keys = "theta phi beta".split()
         angles = [self.fields_params[self.perp_field_idx][key] for key in angle_keys]
@@ -435,6 +783,14 @@ class VacuumEmissionAnalyzer:
         self.write_data(keys)
 
     def get_mix_signal_bg(self, add_signal_bg=False):
+        """
+        Calculates the mixed signal and background.
+
+        Parameters
+        ----------
+        add_signal_bg : bool, optional
+            Whether to add the background signal, by default False.
+        """
         self.get_signal_a12(add_signal_bg)
 
         keys = "a1_sig a2_sig".split()
@@ -456,6 +812,36 @@ class VacuumEmissionAnalyzer:
         discernibility="angular",
         add_signal_bg=False,
     ):
+        """
+        Calculates the spectra based on the specified mode.
+
+        Parameters
+        ----------
+        mode : str, optional
+            Mode of the calculation, by default "total".
+        perp_field_idx : int, optional
+            Index of the perpendicular field, by default 1.
+        perp_type : str, optional
+            Type of perpendicular polarization, by default None.
+        calculate_xyz_background : bool, optional
+            Whether to calculate the background spectra on Cartesian grid,
+            by default False.
+        bgr_idx : int, optional
+            Index of the background field, by default None.
+        stokes : bool, optional
+            Whether to calculate Stokes parameters, by default False.
+        calculate_spherical : bool, optional
+            Whether to calculate the spectra on spherical grid,
+            by default False.
+        spherical_params : dict, optional
+            Parameters for the spherical grid, by default None.
+        calculate_discernible : bool, optional
+            Whether to calculate the discernible signal, by default False.
+        discernibility : str, optional
+            Type of discernibility, by default "angular".
+        add_signal_bg : bool, optional
+            Whether to add the background signal, by default False.
+        """
         if mode == "total":
             self.get_total_spectra(
                 calculate_xyz_background=calculate_xyz_background,

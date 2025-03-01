@@ -123,6 +123,7 @@ class ProbePumpField(Field):
                 Indices of the fields to be used as probe.
             - 'pump' : list of int
                 Indices of the fields to be used as pump.
+                
         If not provided, defaults to {"probe": [0], "pump": [1]}.
 
     nthreads : int, optional
