@@ -6,10 +6,19 @@ import os
 from pathlib import Path
 
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
 from scipy.constants import c, pi
 
+try:
+    import matplotlib.pyplot as plt
+    import matplotlib.colors as mcolors
+    MATPLOTLIB_AVAILABLE = True
+except ModuleNotFoundError:
+    MATPLOTLIB_AVAILABLE = False
+
+
+def _check_matplotlib():
+    if not MATPLOTLIB_AVAILABLE:
+        raise ImportError("Matplotlib is required for this function.")
 
 def save_fig(save_path, fig_name):
     """
@@ -22,6 +31,7 @@ def save_fig(save_path, fig_name):
     fig_name : str
         Name of the figure file.
     """
+    _check_matplotlib()
     if save_path is not None:
         Path(save_path).mkdir(parents=True, exist_ok=True)
         name = os.path.join(save_path, fig_name)
@@ -45,11 +55,11 @@ def pi_formatter(x, pos):
     str
         Formatted tick label.
     """
-    fractions = {0: "0", np.pi/4: r"$\frac{\pi}{4}$", 
-                 np.pi/2: r"$\frac{\pi}{2}$", 3*np.pi/4: r"$\frac{3\pi}{4}$",
-                 np.pi: r"$\pi$", 5*np.pi/4: r"$\frac{5*\pi}{4}$",
-                 3*np.pi/2: r"$\frac{3\pi}{2}$", 7*np.pi/8: r"$\frac{7\pi}{8}$",
-                 2*np.pi: r"$2\pi$"}
+    fractions = {0: "0", pi/4: r"$\frac{\pi}{4}$", 
+                 pi/2: r"$\frac{\pi}{2}$", 3*pi/4: r"$\frac{3\pi}{4}$",
+                 pi: r"$\pi$", 5*pi/4: r"$\frac{5*\pi}{4}$",
+                 3*pi/2: r"$\frac{3\pi}{2}$", 7*pi/8: r"$\frac{7\pi}{8}$",
+                 2*pi: r"$2\pi$"}
     return fractions.get(x, f"${x/np.pi:.2g}\\pi$")
 
 
@@ -79,6 +89,7 @@ def plot_mollweide(fig, ax, phi, theta, data, cmap='coolwarm', norm=None):
     ax : matplotlib.axes.Axes
         Axes object with the plot.
     """
+    _check_matplotlib()
     theta_ = theta - np.pi/2
     phi_ = phi - np.pi
     phi_mesh, theta_mesh = np.meshgrid(phi_, theta_)
@@ -130,6 +141,7 @@ def plot_fields(field, t, plot_keys=None, cmap='coolwarm',
     field_comps : dict
         Dictionary containing the field components.
     """
+    _check_matplotlib()
     Nxyz = field.grid_xyz.grid_shape
     E_out, B_out = [[np.zeros(Nxyz, dtype=np.complex128) for _ in range(3)]
                     for _ in range(2)]
