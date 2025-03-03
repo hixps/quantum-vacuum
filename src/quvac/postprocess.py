@@ -426,6 +426,8 @@ class VacuumEmissionAnalyzer:
             self.epx = ne.evaluate("ky*efz - kz*efy")
             self.epy = ne.evaluate("kz*efx - kx*efz")
             self.epz = ne.evaluate("kx*efy - ky*efx")
+        else:
+            raise NotImplementedError(f"{perp_type} is not implemented")
         return (self.efx, self.efy, self.efz), (self.epx, self.epy, self.epz)
 
     def get_perp_signal(self, angles, perp_type="optical axis",
