@@ -33,7 +33,6 @@ autoapi_ignore = ["*/cluster/*", "*.ipynb_checkpoints/*",]
 templates_path = ['_templates']
 exclude_patterns = []
 
-
 def skip_undocumented_members(app, what, name, obj, skip, options):
     # Skip dublicate entries for class attributes and methods present in
     # class docstring and __init__ method
