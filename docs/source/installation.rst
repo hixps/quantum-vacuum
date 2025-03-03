@@ -11,11 +11,11 @@ After cloning the git repository it could be simply installed with
 
 .. code-block:: bash
 
-    pip install -e quantum-vacuum
+    pip install quantum-vacuum
 
 After successfull installation run ``pytest`` to make sure the installation was
 successfull (it takes some time).
 
 .. code-block:: bash
-    
+
     pytest
