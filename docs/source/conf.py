@@ -1,5 +1,10 @@
 # Configuration file for the Sphinx documentation builder.
-from quvac import __cls_names__, __doc_const_in_modules__
+# from quvac import __cls_names__, __doc_const_in_modules__
+
+__doc_const_in_modules__ = [
+    "config",
+    "field",
+]
 
 project = 'quvac'
 copyright = '2025, maxbalrog'
@@ -37,9 +42,10 @@ def skip_undocumented_members(app, what, name, obj, skip, options):
     # Skip dublicate entries for class attributes and methods present in
     # class docstring and __init__ method
     if what == "attribute":
-        for cls_name in __cls_names__:
-            if cls_name in name:
-                skip = True
+        skip = True
+        # for cls_name in __cls_names__:
+        #     if cls_name in name:
+        #         skip = True
     # skip all module constants
     if what == "data" and not skip:
         skip = True
