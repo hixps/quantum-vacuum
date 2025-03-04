@@ -1,5 +1,5 @@
 """
-Usefult functions and default strings for logs
+Usefult functions and default strings for logs.
 """
 from quvac.utils import format_memory, format_time
 
@@ -111,6 +111,21 @@ End of simulation:      {:>20}
 
 
 def get_grid_params(grid_xyz, grid_t):
+    """
+    Get formatted grid parameters for logging.
+
+    Parameters
+    ----------
+    grid_xyz : quvac.grid.GridXYZ
+        The spatial grid object.
+    grid_t : numpy.ndarray
+        The temporal grid array.
+
+    Returns
+    -------
+    grid_print : str
+        Formatted string with grid parameters.
+    """
     nx, ny, nz = grid_xyz.grid_shape
     grid_xyz_size = f"({nx}, {ny}, {nz})"
     x, y, z = grid_xyz.grid
@@ -130,10 +145,23 @@ def get_grid_params(grid_xyz, grid_t):
 
 
 def get_postprocess_info(postprocess_params):
+    """
+    Get formatted postprocess parameters for logging.
+
+    Parameters
+    ----------
+    postprocess_params : dict
+        Dictionary containing postprocess parameters.
+
+    Returns
+    -------
+    postprocess_print : str
+        Formatted string with postprocess parameters.
+    """
     calculate_spherical = postprocess_params.get("calculate_spherical", False)
     spherical_params = postprocess_params.get("spherical_params", {})
     calculate_discernible = postprocess_params.get("calculate_discernible", False)
-    perp_type = postprocess_params.get("perp_polarization_type", None)
+    perp_type = postprocess_params.get("perp_polarization_type", "optical axis")
     perp_field_idx = postprocess_params.get("perp_field_idx", 1)
 
     postprocess_print = postprocess_str.format(
@@ -143,6 +171,19 @@ def get_postprocess_info(postprocess_params):
 
 
 def get_performance_stats(perf_stats):
+    """
+    Get formatted performance statistics for logging.
+
+    Parameters
+    ----------
+    perf_stats : dict
+        Dictionary containing performance statistics.
+
+    Returns
+    -------
+    perf_print : str
+        Formatted string with performance statistics.
+    """
     timings = perf_stats["timings"]
     timings = {
         "field_setup": timings["field_setup"] - timings["start"],
@@ -168,6 +209,19 @@ def get_performance_stats(perf_stats):
 
 
 def get_postprocess_stats(perf_stats):
+    """
+    Get formatted postprocess performance statistics for logging.
+
+    Parameters
+    ----------
+    perf_stats : dict
+        Dictionary containing postprocess performance statistics.
+
+    Returns
+    -------
+    perf_print : str
+        Formatted string with postprocess performance statistics.
+    """
     timings = perf_stats['timings']
     timings = {
         'postprocess': timings["postprocess"] - timings["start"]
@@ -182,6 +236,19 @@ def get_postprocess_stats(perf_stats):
 
 
 def get_parallel_performance_stats(perf_stats):
+    """
+    Get formatted parallel performance statistics for logging.
+
+    Parameters
+    ----------
+    perf_stats : dict
+        Dictionary containing parallel performance statistics.
+
+    Returns
+    -------
+    perf_print : str
+        Formatted string with parallel performance statistics.
+    """
     timings = perf_stats["timings"]
     timings = {
         "jobs": timings["jobs"] - timings["start"],
@@ -201,6 +268,23 @@ def get_parallel_performance_stats(perf_stats):
 
 
 def get_test_timings(timings, Nt, expected_timesteps):
+    """
+    Get formatted test run timings for logging.
+
+    Parameters
+    ----------
+    timings : dict
+        Dictionary containing timing information.
+    Nt : int
+        Number of iterations.
+    expected_timesteps : int
+        Expected number of timesteps.
+
+    Returns
+    -------
+    test_run_str_print : str
+        Formatted string with test run timings.
+    """
     time_overhead = timings['amplitudes'] - timings['field_setup'] - timings['integral']
     time_per_iteration = timings['integral'] / Nt
     expected_time = time_per_iteration * expected_timesteps

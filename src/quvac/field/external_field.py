@@ -1,30 +1,40 @@
 """
-This script provides uniform ExternalField class to unite all
-participating fields in one interface
+Common interfaces for external field and pump-probe fields to unify
+various field types.
 """
 
 import logging
 import os
 
+from quvac.field import ANALYTIC_FIELDS
 from quvac.field.abc import Field
-from quvac.field.dipole import DipoleAnalytic
-from quvac.field.gaussian import GaussianAnalytic
 from quvac.field.maxwell import MaxwellMultiple
 
-logger = logging.getLogger("simulation")
+_logger = logging.getLogger("simulation")
 
 
 class ExternalField(Field):
     """
-    Class to unite several participating fields under
-    one interface
+    Class to unite several participating external fields under one interface.
 
-    Parameters:
-    -----------
-    fields_params: list of dicts (field_params)
-        External fields
-    grid: (1d-np.array, 1d-np.array, 1d-np.array)
-        xyz spatial grid to calculate fields on
+    Parameters
+    ----------
+    fields_params : list of dict
+        List of dictionaries containing the parameters for each external field.
+    grid : quvac.grid.GridXYZ
+        Spatial and spectral grid.
+    nthreads : int, optional
+        Number of threads to use for calculations. If not provided, defaults to the 
+        number of CPU cores.
+
+    Attributes
+    ----------
+    fields : list
+        List of field objects.
+    grid_xyz : tuple of np.array
+        The spatial grid.
+    nthreads : int
+        Number of threads to use for calculations.
     """
 
     def __init__(self, fields_params, grid, nthreads=None):
@@ -46,37 +56,51 @@ class ExternalField(Field):
         if maxwell_params:
             new_params.append(maxwell_params)
 
-        logger.info(
+        _logger.info(
             f"{self.__class__.__name__}\n"
             "----------------------------------------------------"
         )
         for field_params in new_params:
             self.setup_field(field_params)
-        logger.info("----------------------------------------------------")
+        _logger.info("----------------------------------------------------")
 
     def setup_field(self, field_params):
+        """
+        Set up a field based on the provided parameters.
+
+        Parameters
+        ----------
+        field_params : dict or list of dict
+            Dictionary or list of dictionaries containing the parameters for the field.
+
+        Raises
+        ------
+        NotImplementedError
+            If the field type is not supported.
+        """
         if isinstance(field_params, list):
             field_type = "maxwell"
         else:
             field_type = field_params["field_type"]
 
-        match field_type:
-            case "paraxial_gaussian_analytic":
-                field = GaussianAnalytic(field_params, self.grid_xyz)
-            case "dipole_analytic":
-                field = DipoleAnalytic(field_params, self.grid_xyz)
-            case "maxwell":
-                field = MaxwellMultiple(
+        if field_type in ANALYTIC_FIELDS:
+            field = ANALYTIC_FIELDS[field_type](field_params, self.grid_xyz)
+        elif field_type == "maxwell":
+            field = MaxwellMultiple(
                     field_params, self.grid_xyz, nthreads=self.nthreads
                 )
-            case _:
-                raise NotImplementedError(
+        else:
+            raise NotImplementedError(
                     f"We do not support '{field_type}' field type"
                 )
+
         self.fields.append(field)
-        logger.info(f"Base class: {field.__class__.__name__}")
+        _logger.info(f"Base class: {field.__class__.__name__}")
 
     def calculate_field(self, t, E_out=None, B_out=None):
+        """
+        Calculates the electric and magnetic fields at a given time step.
+        """
         for field in self.fields:
             E_out, B_out = field.calculate_field(t, E_out=E_out, B_out=B_out)
         return E_out, B_out
@@ -84,17 +108,38 @@ class ExternalField(Field):
 
 class ProbePumpField(Field):
     """
-    Class for splitting fields into probe and pump
+    Class for splitting fields into probe and pump.
 
-    Parameters:
-    -----------
-    fields_params: list of dicts (field_params)
-        External fields
-    grid: (1d-np.array, 1d-np.array, 1d-np.array)
-        xyz spatial grid to calculate fields on
-    probe_pump_idx: dict
-        Required keys: probe, pump
-        Specifies which fields are pump and probe
+    Parameters
+    ----------
+    fields_params : list of dict
+        List of dictionaries containing the parameters for each external field.
+    grid : quvac.grid.GridXYZ
+        Spatial and spectral grid.
+
+    probe_pump_idx : dict, optional
+        Dictionary specifying which fields are probe and pump. Required keys are:
+            - 'probe' : list of int
+                Indices of the fields to be used as probe.
+            - 'pump' : list of int
+                Indices of the fields to be used as pump.
+                
+        If not provided, defaults to {"probe": [0], "pump": [1]}.
+
+    nthreads : int, optional
+        Number of threads to use for calculations. If not provided, defaults to the 
+        number of CPU cores.
+
+    Attributes
+    ----------
+    probe_pump_idx : dict
+        Dictionary specifying which fields are probe and pump.
+    nthreads : int
+        Number of threads to use for calculations.
+    probe_field : ExternalField
+        ExternalField object for the probe fields.
+    pump_field : ExternalField
+        ExternalField object for the pump fields.
     """
 
     def __init__(self, fields_params, grid, probe_pump_idx=None, nthreads=None):
@@ -111,6 +156,27 @@ class ProbePumpField(Field):
         self.pump_field = ExternalField(pump_params, grid, nthreads=nthreads)
 
     def calculate_field(self, t, E_probe=None, B_probe=None, E_pump=None, B_pump=None):
+        """
+        Calculate the probe and pump fields at a given time t.
+
+        Parameters
+        ----------
+        t : float
+            The time at which to calculate the fields.
+        E_probe : np.array, optional
+            Array to store the electric field output for the probe.
+        B_probe : np.array, optional
+            Array to store the magnetic field output for the probe.
+        E_pump : np.array, optional
+            Array to store the electric field output for the pump.
+        B_pump : np.array, optional
+            Array to store the magnetic field output for the pump.
+
+        Returns
+        -------
+        tuple of tuple of np.array
+            The calculated electric and magnetic fields for the probe and pump.
+        """
         self.probe_field.calculate_field(t, E_out=E_probe, B_out=B_probe)
         self.pump_field.calculate_field(t, E_out=E_pump, B_out=B_pump)
         return (E_probe, B_probe), (E_pump, B_pump)

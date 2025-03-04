@@ -1,4 +1,11 @@
-"""This script implements analytic expression for paraxial gaussian"""
+"""
+Analytic expression for paraxial gaussian (0-order and higher-orders).
+
+----
+
+.. [1] Y. I. Salamin. "Fields of a Gaussian beam beyond the paraxial 
+    approximation." Applied Physics B 86 (2007): 319-326.
+"""
 
 import numexpr as ne
 import numpy as np
@@ -11,67 +18,63 @@ from quvac.field.utils import get_field_energy
 
 class GaussianAnalytic(ExplicitField):
     """
-    Analytic expression for paraxial Gaussian
-    All field parameters are in SI units
+    Analytic expression for paraxial Gaussian beam.
 
-    Field parameters
-    ----------------
-    focus_x: (float, float, float)
-        Location of spatial focus (x,y,z)
-    focus_t: float
-        Location of temporal focus
-    theta, phi: float
-        Spherical angles of k-vector (in degrees),
-        theta - angle with z-axis,
-        phi - angle with x-axis
-    beta: float
-        Polarization angle (in degrees),
-        beta = 0, theta = 0 corresponds to E-vector along x-axis
-    lam: float
-        Lambda, pulse wavelength
-    w0: float
-        Waist size
-    tau: float
-        Duration
-    phase0: float
-        Phase delay at focus
-    E0: float (optional, either E0 or W is required)
-        Amplitude
-    W: float (optional)
-        Energy
+    Parameters
+    ----------
+    field_params : dict
+        Dictionary containing the field parameters. Required keys are:
+            - 'focus_x' : tuple of float
+                Location of spatial focus (x, y, z).
+            - 'focus_t' : float
+                Location of temporal focus.
+            - 'theta' : float
+                Polar angle of k-vector (in degrees).
+            - 'phi' : float
+                Azimuthal angle of k-vector (in degrees).
+            - 'beta' : float
+                Polarization angle (in degrees).
+            - 'lam' : float
+                Wavelength of the pulse.
+            - 'w0' : float
+                Waist size.
+            - 'tau' : float
+                Duration.
+            - 'phase0' : float
+                Phase delay at focus.
+            - 'E0' : float, optional
+                Amplitude (either E0 or W is required).
+            - 'W' : float, optional
+                Energy (either E0 or W is required).
+    grid : quvac.grid.GridXYZ
+        Spatial and grid.
 
-    Other arguments
-    ---------------
-    grid: (1d-np.array, 1d-np.array, 1d-np.array)
-        xyz spatial grid to calculate fields on
+    Notes
+    -----
+    All field parameters are in SI units.
+
+    Higher-order paraxial Gaussian orders are from [1]_.
     """
 
     def __init__(self, field_params, grid):
         super().__init__(grid)
+
         # Dynamically create class instance variables available with
         # self.<variable_name>
         angles = "theta phi beta phase0".split()
         for key, val in field_params.items():
             if key in angles:
                 val *= pi / 180.0
-            self.__dict__[key] = val
+            setattr(self, key, val)
+
         self.phase0 += pi / 2.0
-        if "order" not in field_params:
-            self.order = 0
+        self.order = getattr(self, "order", 0)
 
         if "E0" not in field_params:
-            assert (
-                "W" in field_params
-            ), """Field params need to have either 
-                                           W (energy) or E0 (amplitude) as key"""
+            err_msg = ("Field params need to have either W (energy) or"
+                       "E0 (amplitude) as key")
+            assert "W" in field_params, err_msg
             self.E0 = 1.0e10
-
-        # Define grid variables
-        self.grid_xyz = grid
-        grid_keys = "grid_shape xyz dV".split()
-        self.__dict__.update(
-            {k: v for k, v in self.grid_xyz.__dict__.items() if k in grid_keys}
-        )
 
         # Define additional field variables
         self.x0, self.y0, self.z0 = self.focus_x
@@ -104,8 +107,10 @@ class GaussianAnalytic(ExplicitField):
             self.check_energy()
 
     def get_rotation(self):
-        # Define rotation transforming (0,0,1) -> (kx,ky,kz) for vectors
-        # and (1,0,0) -> e(beta) = e1*cos(beta) + e2*sin(beta)
+        """
+        Defines the rotation transforming (0,0,1) -> (kx,ky,kz) 
+        for vectors and (1,0,0) -> e(beta) = e1*cos(beta) + e2*sin(beta).
+        """
         self.rotation = Rotation.from_euler("ZYZ", (self.phi, self.theta, self.beta))
         self.rotation_m = self.rotation.as_matrix()
         # Inverse rotation: (kx,ky,kz) -> (0,0,1)
@@ -113,6 +118,9 @@ class GaussianAnalytic(ExplicitField):
         self.rotation_bwd_m = self.rotation_bwd.as_matrix()
 
     def rotate_coordinates(self):
+        """
+        Rotates the coordinate grid.
+        """
         self.get_rotation()
         axes = "xyz"
         x_, y_, z_ = self.xyz
@@ -124,8 +132,7 @@ class GaussianAnalytic(ExplicitField):
 
     def define_ho_variables(self):
         """
-        We follow the article: Salamin, Yousef I. "Fields of a Gaussian beam
-        beyond the paraxial approximation." Applied Physics B 86 (2007): 319-326.
+        Define higher order variables.
         """
         self.eps = self.w0 / self.zR
         self.xi = ne.evaluate("x/w0", global_dict=self.__dict__)
@@ -177,7 +184,7 @@ class GaussianAnalytic(ExplicitField):
 
     def calculate_ho_orders(self):
         """
-        ho stands for Higher Order
+        Calculate higher order terms for the fields.
         """
         self.define_ho_variables()
         # For a given order, combine final expression to calculate
@@ -192,6 +199,9 @@ class GaussianAnalytic(ExplicitField):
             )
 
     def check_energy(self):
+        """
+        Check and adjust the field energy.
+        """
         E, B = self.calculate_field(t=0)
         W = get_field_energy(E, B, self.dV)
 
@@ -202,6 +212,9 @@ class GaussianAnalytic(ExplicitField):
             self.W_num = W * self.E0**2
 
     def calculate_field(self, t, E_out=None, B_out=None, mode="real"):
+        """
+        Calculates the electric and magnetic fields at a given time step.
+        """
         k = 2.0 * pi / self.lam
         self.psi_plane = ne.evaluate("(omega*(t-t0) - k*z)", global_dict=self.__dict__)
         self.phase = "(phase_no_t + psi_plane)"

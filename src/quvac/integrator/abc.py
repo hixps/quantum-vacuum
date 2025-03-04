@@ -1,21 +1,18 @@
 """
-This script provides abstract interface for existing and future 
-integrator classes
+Abstract interfaces for different integrators.
+
+.. warning::
+    Currently not used...
 """
 
 from abc import ABC, abstractmethod
 
 
 class Integrator(ABC):
+    """
+    Abstract integrator class.
+    """
     @abstractmethod
     def calculate_amplitudes(self, t_grid):
         """ """
         ...
-
-
-class FourierIntegrator(Integrator):
-    def allocate_fields(self):
-        pass
-
-    def calculate_one_time_step(self):
-        pass

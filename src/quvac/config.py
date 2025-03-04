@@ -1,5 +1,11 @@
 """
-Here useful constants are stored that configure simulations
+Configuration file for simulations. 
+
+``FDTYPE`` and ``CDTYPE`` control the float precision for the 
+calculations (``float32`` or ``float64``).
+
+``DEFAULT_SUBMITIT_PARAMS`` is a dictionary with default parameters for
+job submission to the cluster.
 """
 
 DEFAULT_SUBMITIT_PARAMS = {

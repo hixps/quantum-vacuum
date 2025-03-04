@@ -1,6 +1,21 @@
 """
-Here we provide utility functions to calculate analytic 
-scalings from articles
+Calculation of analytic scalings from articles.
+
+Currently supports:
+
+1. Total signal and perpendicular signal for two colliding 
+paraxial gaussian beams (off-axis).
+
+2. More exact scaling for on-axis collision of two beams.
+
+----
+
+.. [1] F. Karbstein, et al. "Vacuum birefringence at x-ray free-electron 
+    lasers." NJP 23.9 (2021): 095001.
+
+.. [2] E. Mosman, F.Karbstein "Vacuum birefringence and diffraction at 
+    XFEL: from analytical estimates to optimal parameters." PRD 104.1 
+    (2021): 013006.
 """
 
 import numpy as np
@@ -14,15 +29,30 @@ lam_C = hbar / (m_e * c)  # reduced Compton wavelength
 
 def get_two_paraxial_scaling(fields, channels="both"):
     """
-    This is a variation of Eq.(25) from F. Karbstein, et al. "Vacuum
-    birefringence at x-ray free-electron lasers." New Journal of Physics
-    23.9 (2021): 095001.
+    Calculate the total signal and perpendicular signal for two colliding 
+    paraxial Gaussian beams (off-axis).
 
-    We introduced additional polarization-dependent factors (beta). The
-    formula should work for theta not close to 180, loose focusing and short
-    pulse duration.
+    Parameters
+    ----------
+    fields : list of dict
+        List of dictionaries containing the field parameters.
+    channels : str, optional
+        Channels to iterate through, by default "both".
 
-    Note: result for N_perp should be used only for beta=45
+    Returns
+    -------
+    N_signal : float
+        Total signal.
+    N_perp : float
+        Perpendicular signal.
+
+    Notes
+    -----
+    We introduced additional polarization-dependent factors (beta). The 
+    formula should work for theta not close to 180, loose focusing and 
+    short pulse duration. Result for N_perp should be used only for beta=45.
+
+    This is a variation of Eq.(25) from [1]_.
     """
     theta_c = (fields[1]["theta"] - fields[0]["theta"]) * pi / 180
     beta = (fields[1]["beta"] - fields[0]["beta"]) * pi / 180
@@ -62,7 +92,24 @@ def get_two_paraxial_scaling(fields, channels="both"):
     return N_signal, N_perp
 
 
-def f_felix(x, r, k0=20):
+def _onaxis_function(x, r, k0=20):
+    """
+    Calculate the integral for the function defined in [2]_.
+
+    Parameters
+    ----------
+    x : float
+        Parameter x.
+    r : float
+        Parameter r.
+    k0 : float, optional
+        Integration limit for the integral, by default 20.
+
+    Returns
+    -------
+    result : float
+        Result of the integral.
+    """
     def integrand(k):
         s = 0
         for l in [-1, 1]:
@@ -77,16 +124,27 @@ def f_felix(x, r, k0=20):
 
 def get_onaxis_scaling(fields, k0=20):
     """
-    This is an integrated version of Eq.(11) [Eq. (13)] from E. Mosman, F.Karbstein
-    "Vacuum birefringence and diffraction at XFEL: from analytical estimates to optimal parameters"
-    PRD 104.1 (2021): 013006.
-    
-    We assume that 1st field in the list is x-ray
+    Calculate the more exact scaling for on-axis collision of two beams.
 
-    Parameters:
-    -----------
-    k0: float
-        Integration limit for the integral in F function
+    Parameters
+    ----------
+    fields : list of dict
+        List of dictionaries containing the field parameters.
+    k0 : float, optional
+        Integration limit for the integral in F function, by default 20.
+
+    Returns
+    -------
+    N_signal : float
+        Total signal.
+    N_perp : float
+        Perpendicular signal.
+
+    Notes
+    -----
+    We assume that the 1st field in the list is x-ray.
+
+    This is an integrated version of Eq.(11) [Eq. (13)] from [2]_.
     """
     wx, w0 = fields[0]["w0"], fields[1]["w0"]
     beta = wx / w0
@@ -99,8 +157,8 @@ def get_onaxis_scaling(fields, k0=20):
 
     x0 = 4 * zR / (c * np.sqrt(T**2 + 1/2*tau**2))
     r0 = T / tau
-    Fbeta = f_felix(x0 * np.sqrt(1+2*beta**2), r0, k0=k0)
-    F0 = f_felix(x0, r0, k0=k0)
+    Fbeta = _onaxis_function(x0 * np.sqrt(1+2*beta**2), r0, k0=k0)
+    F0 = _onaxis_function(x0, r0, k0=k0)
 
     prefactor = 4 * alpha**4 / (3*pi)**1.5 * W**2 * (hbar * omega_x)**2 / W_e**4
     result = prefactor * (lam_C / w0)**4 / (1 + 2*beta**2) * np.sqrt(Fbeta*F0) * Nx
