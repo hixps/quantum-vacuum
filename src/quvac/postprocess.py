@@ -615,7 +615,7 @@ class VacuumEmissionAnalyzer:
         numpy.ndarray
             Background field spectra.
         """
-        bgr_N_xyz = self.get_background_xyz(add_to_cls_dict=False, bgr_idx=bgr_idx)
+        bgr_N_xyz = self.get_background_xyz(add_to_cls_dict=True, bgr_idx=bgr_idx)
 
         # Interpolate on spherical grid
         _, bgr_N_sph = cartesian_to_spherical_array(
