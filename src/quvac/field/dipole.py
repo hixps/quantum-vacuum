@@ -165,13 +165,13 @@ class DipoleAnalytic(ExplicitField):
         return ne.evaluate(self.gdotdot_expr, global_dict=self.__dict__)
     
     def _g_plusminus(self, t, sign=1):
-        return self.g(t-self.R/c) + sign*self.g(t+self.R/c)
+        return self._g(t-self.R/c) + sign*self._g(t+self.R/c)
     
     def _gdot_plusminus(self, t, sign=1):
-        return self.gdot(t-self.R/c) + sign*self.gdot(t+self.R/c)
+        return self._gdot(t-self.R/c) + sign*self._gdot(t+self.R/c)
     
     def _gdotdot_plusminus(self, t, sign=1):
-        return self.gdotdot(t-self.R/c) + sign*self.gdotdot(t+self.R/c)
+        return self._gdotdot(t-self.R/c) + sign*self._gdotdot(t+self.R/c)
 
     def _fix_singularity(self, t):
         # fix divergence at R=0
