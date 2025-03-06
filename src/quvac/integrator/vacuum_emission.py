@@ -10,7 +10,7 @@ All fields are treated as external.
 probe channel signal.
 
 .. note::
-    For details on implementation check out Theory section.
+    For details on implementation check out :doc:`implementation` section.
 """
 
 import os

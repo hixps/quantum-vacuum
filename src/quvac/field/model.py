@@ -53,12 +53,12 @@ class EBInhomogeneity(Field):
 
         self.beta = getattr(self, "beta", 0.)
         self.field_inhom = getattr(self, "field_inhom", "magnetic")
-        # rotate coordinate grid
+        
+        # create rotation matrices to transform the field orientation
+        # without changing the grid
         self.rotate_coordinates(rotate_grid=False)
 
-        # get envelope
         self.get_envelope()
-
         self.E_expr = f"E0 * {self.envelope}"
 
         EB_keys = "Ex Ey Ez Bx By Bz".split()

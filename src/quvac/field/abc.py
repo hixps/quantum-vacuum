@@ -2,7 +2,7 @@
 Abstract interfaces for field classes.
 
 For details about spectral coefficient calculation (a1, a2)
-refer to Theory section of documentation. 
+refer to :doc:`implementation` section of documentation. 
 """
 
 import logging
@@ -27,6 +27,22 @@ class Field(ABC):
 
     This class defines the interface for calculating fields at a given time step.
     Subclasses must implement the ``calculate_field`` method.
+
+    Parameters
+    ----------
+    field_params : dict
+        Dictionary containing the field parameters.
+    grid : quvac.grid.GridXYZ
+        Spatial and spectral grid.
+
+     Attributes
+    ----------
+    grid_xyz : quvac.grid.GridXYZ
+        The spatial and spectral grid.
+    rotation_m : np.array
+        Rotation matrix.
+    rotation_bwd_m : np.array
+        Inverse rotation matrix.
     """
     def __init__(self, field_params, grid):
         # add grid attributes to field class attributes
@@ -54,6 +70,11 @@ class Field(ABC):
     def rotate_coordinates(self, rotate_grid=True):
         """
         Rotates the coordinate grid.
+
+        Parameters
+        ----------
+        rotate_grid : bool, optional
+            Whether to rotate the grid coordinates. Default is True.
         """
         self.get_rotation()
         if rotate_grid:
@@ -69,6 +90,23 @@ class Field(ABC):
             self.x, self.y, self.z = self.xyz
 
     def get_EB_out(self, E_out, B_out, mode):
+        """
+        Get the output arrays for the electric and magnetic fields.
+
+        Parameters
+        ----------
+        E_out : array-like, optional
+            Output array for the electric field.
+        B_out : array-like, optional
+            Output array for the magnetic field.
+        mode : str
+            Mode of calculation ('real' or 'complex').
+
+        Returns
+        -------
+        tuple of array-like
+            The output arrays for the electric and magnetic fields.
+        """
         dtype = np.float64 if mode == "real" else np.complex128
         if E_out is None:
             E_out = [np.zeros(self.grid_shape, dtype=dtype) for _ in range(3)]
@@ -77,6 +115,23 @@ class Field(ABC):
         return E_out, B_out
     
     def rotate_fields_back(self, E_out, B_out, mode):
+        """
+        Rotate the fields back to the original coordinate frame.
+
+        Parameters
+        ----------
+        E_out : array-like, optional
+            Output array for the electric field.
+        B_out : array-like, optional
+            Output array for the magnetic field.
+        mode : str
+            Mode of calculation ('real' or 'complex').
+
+        Returns
+        -------
+        tuple of array-like
+            The rotated electric and magnetic fields.
+        """
         E_out, B_out = self.get_EB_out(E_out, B_out, mode)
 
         out_dtype = config.FDTYPE if mode == "real" else config.CDTYPE
@@ -88,7 +143,10 @@ class Field(ABC):
         return E_out, B_out
     
     def convert_fields_to_real(self):
-        for field in "Ex Ey Ez By Bz".split():
+        """
+        Take real part of field components.
+        """
+        for field in "Ex Ey Ez Bx By Bz".split():
             setattr(self, field, np.real(getattr(self, field)))
 
 
