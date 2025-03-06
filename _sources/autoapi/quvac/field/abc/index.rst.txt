@@ -8,8 +8,16 @@ quvac.field.abc
    Abstract interfaces for field classes.
 
    For details about spectral coefficient calculation (a1, a2)
-   refer to Theory section of documentation.
+   refer to :doc:`implementation` section of documentation.
 
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   quvac.field.abc.ANGLE_KEYS
 
 
 Classes
@@ -25,7 +33,9 @@ Classes
 Module Contents
 ---------------
 
-.. py:class:: Field
+.. py:data:: ANGLE_KEYS
+
+.. py:class:: Field(field_params, grid)
 
    Bases: :py:obj:`abc.ABC`
 
@@ -34,6 +44,74 @@ Module Contents
 
    This class defines the interface for calculating fields at a given time step.
    Subclasses must implement the ``calculate_field`` method.
+
+   :param field_params: Dictionary containing the field parameters.
+   :type field_params: dict
+   :param grid:    Spatial and spectral grid.
+
+                Attributes
+   :type grid: quvac.grid.GridXYZ
+   :param ----------:
+   :param grid_xyz: The spatial and spectral grid.
+   :type grid_xyz: quvac.grid.GridXYZ
+   :param rotation_m: Rotation matrix.
+   :type rotation_m: np.array
+   :param rotation_bwd_m: Inverse rotation matrix.
+   :type rotation_bwd_m: np.array
+
+
+   .. py:method:: get_rotation()
+
+      Defines the rotation transforming (0,0,1) -> (kx,ky,kz)
+      for vectors and (1,0,0) -> e(beta) = e1*cos(beta) + e2*sin(beta).
+
+
+
+   .. py:method:: rotate_coordinates(rotate_grid=True)
+
+      Rotates the coordinate grid.
+
+      :param rotate_grid: Whether to rotate the grid coordinates. Default is True.
+      :type rotate_grid: bool, optional
+
+
+
+   .. py:method:: get_EB_out(E_out, B_out, mode)
+
+      Get the output arrays for the electric and magnetic fields.
+
+      :param E_out: Output array for the electric field.
+      :type E_out: array-like, optional
+      :param B_out: Output array for the magnetic field.
+      :type B_out: array-like, optional
+      :param mode: Mode of calculation ('real' or 'complex').
+      :type mode: str
+
+      :returns: The output arrays for the electric and magnetic fields.
+      :rtype: tuple of array-like
+
+
+
+   .. py:method:: rotate_fields_back(E_out, B_out, mode)
+
+      Rotate the fields back to the original coordinate frame.
+
+      :param E_out: Output array for the electric field.
+      :type E_out: array-like, optional
+      :param B_out: Output array for the magnetic field.
+      :type B_out: array-like, optional
+      :param mode: Mode of calculation ('real' or 'complex').
+      :type mode: str
+
+      :returns: The rotated electric and magnetic fields.
+      :rtype: tuple of array-like
+
+
+
+   .. py:method:: convert_fields_to_real()
+
+      Take real part of field components.
+
 
 
    .. py:method:: calculate_field(t, E_out=None, B_out=None, **kwargs)
@@ -56,7 +134,7 @@ Module Contents
 
 
 
-.. py:class:: ExplicitField(grid)
+.. py:class:: ExplicitField(field_params, grid)
 
    Bases: :py:obj:`Field`
 
@@ -119,7 +197,7 @@ Module Contents
 
 
 
-.. py:class:: FieldFromFile
+.. py:class:: FieldFromFile(field_params, grid)
 
    Bases: :py:obj:`Field`
 

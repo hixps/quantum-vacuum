@@ -26,6 +26,7 @@ Submodules
    /autoapi/quvac/field/external_field/index
    /autoapi/quvac/field/gaussian/index
    /autoapi/quvac/field/maxwell/index
+   /autoapi/quvac/field/model/index
    /autoapi/quvac/field/utils/index
 
 

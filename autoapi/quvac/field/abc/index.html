@@ -215,6 +215,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../external_field/index.html">quvac.field.external_field</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../gaussian/index.html">quvac.field.gaussian</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../maxwell/index.html">quvac.field.maxwell</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../model/index.html">quvac.field.model</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../utils/index.html">quvac.field.utils</a></li>
 </ul>
 </li>
@@ -278,7 +279,19 @@
 <span id="quvac-field-abc"></span><h1>quvac.field.abc<a class="headerlink" href="#module-quvac.field.abc" title="Link to this heading">¶</a></h1>
 <p>Abstract interfaces for field classes.</p>
 <p>For details about spectral coefficient calculation (a1, a2)
-refer to Theory section of documentation.</p>
+refer to <span class="xref std std-doc">implementation</span> section of documentation.</p>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quvac.field.abc.ANGLE_KEYS" title="quvac.field.abc.ANGLE_KEYS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ANGLE_KEYS</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <section id="classes">
 <h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">¶</a></h2>
 <div class="table-wrapper autosummary longtable docutils container">
@@ -299,13 +312,98 @@ refer to Theory section of documentation.</p>
 </section>
 <section id="module-contents">
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="quvac.field.abc.ANGLE_KEYS">
+<span class="sig-prename descclassname"><span class="pre">quvac.field.abc.</span></span><span class="sig-name descname"><span class="pre">ANGLE_KEYS</span></span><a class="headerlink" href="#quvac.field.abc.ANGLE_KEYS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="quvac.field.abc.Field">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quvac.field.abc.</span></span><span class="sig-name descname"><span class="pre">Field</span></span><a class="headerlink" href="#quvac.field.abc.Field" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quvac.field.abc.</span></span><span class="sig-name descname"><span class="pre">Field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#quvac.field.abc.Field" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
 <p>Abstract base class for fields.</p>
 <p>This class defines the interface for calculating fields at a given time step.
 Subclasses must implement the <code class="docutils literal notranslate"><span class="pre">calculate_field</span></code> method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>field_params</strong> (<em>dict</em>) – Dictionary containing the field parameters.</p></li>
+<li><p><strong>grid</strong> (<a class="reference internal" href="../../grid/index.html#quvac.grid.GridXYZ" title="quvac.grid.GridXYZ"><em>quvac.grid.GridXYZ</em></a>) – <p>Spatial and spectral grid.</p>
+<p>Attributes</p>
+</p></li>
+<li><p><strong>----------</strong></p></li>
+<li><p><strong>grid_xyz</strong> (<a class="reference internal" href="../../grid/index.html#quvac.grid.GridXYZ" title="quvac.grid.GridXYZ"><em>quvac.grid.GridXYZ</em></a>) – The spatial and spectral grid.</p></li>
+<li><p><strong>rotation_m</strong> (<em>np.array</em>) – Rotation matrix.</p></li>
+<li><p><strong>rotation_bwd_m</strong> (<em>np.array</em>) – Inverse rotation matrix.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="quvac.field.abc.Field.get_rotation">
+<span class="sig-name descname"><span class="pre">get_rotation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#quvac.field.abc.Field.get_rotation" title="Link to this definition">¶</a></dt>
+<dd><p>Defines the rotation transforming (0,0,1) -&gt; (kx,ky,kz)
+for vectors and (1,0,0) -&gt; e(beta) = e1*cos(beta) + e2*sin(beta).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quvac.field.abc.Field.rotate_coordinates">
+<span class="sig-name descname"><span class="pre">rotate_coordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rotate_grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#quvac.field.abc.Field.rotate_coordinates" title="Link to this definition">¶</a></dt>
+<dd><p>Rotates the coordinate grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>rotate_grid</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to rotate the grid coordinates. Default is True.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quvac.field.abc.Field.get_EB_out">
+<span class="sig-name descname"><span class="pre">get_EB_out</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#quvac.field.abc.Field.get_EB_out" title="Link to this definition">¶</a></dt>
+<dd><p>Get the output arrays for the electric and magnetic fields.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>E_out</strong> (<em>array-like</em><em>, </em><em>optional</em>) – Output array for the electric field.</p></li>
+<li><p><strong>B_out</strong> (<em>array-like</em><em>, </em><em>optional</em>) – Output array for the magnetic field.</p></li>
+<li><p><strong>mode</strong> (<em>str</em>) – Mode of calculation (‘real’ or ‘complex’).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The output arrays for the electric and magnetic fields.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple of array-like</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quvac.field.abc.Field.rotate_fields_back">
+<span class="sig-name descname"><span class="pre">rotate_fields_back</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#quvac.field.abc.Field.rotate_fields_back" title="Link to this definition">¶</a></dt>
+<dd><p>Rotate the fields back to the original coordinate frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>E_out</strong> (<em>array-like</em><em>, </em><em>optional</em>) – Output array for the electric field.</p></li>
+<li><p><strong>B_out</strong> (<em>array-like</em><em>, </em><em>optional</em>) – Output array for the magnetic field.</p></li>
+<li><p><strong>mode</strong> (<em>str</em>) – Mode of calculation (‘real’ or ‘complex’).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The rotated electric and magnetic fields.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple of array-like</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quvac.field.abc.Field.convert_fields_to_real">
+<span class="sig-name descname"><span class="pre">convert_fields_to_real</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#quvac.field.abc.Field.convert_fields_to_real" title="Link to this definition">¶</a></dt>
+<dd><p>Take real part of field components.</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="quvac.field.abc.Field.calculate_field">
 <em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calculate_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#quvac.field.abc.Field.calculate_field" title="Link to this definition">¶</a></dt>
@@ -332,7 +430,7 @@ Subclasses must implement the <code class="docutils literal notranslate"><span c
 
 <dl class="py class">
 <dt class="sig sig-object py" id="quvac.field.abc.ExplicitField">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quvac.field.abc.</span></span><span class="sig-name descname"><span class="pre">ExplicitField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#quvac.field.abc.ExplicitField" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quvac.field.abc.</span></span><span class="sig-name descname"><span class="pre">ExplicitField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#quvac.field.abc.ExplicitField" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#quvac.field.abc.Field" title="quvac.field.abc.Field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Field</span></code></a></p>
 <p>For fields with an analytic formula known in the whole space at
 least in the focus (t=0).</p>
@@ -424,7 +522,7 @@ is corrected to the desired value.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="quvac.field.abc.FieldFromFile">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quvac.field.abc.</span></span><span class="sig-name descname"><span class="pre">FieldFromFile</span></span><a class="headerlink" href="#quvac.field.abc.FieldFromFile" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quvac.field.abc.</span></span><span class="sig-name descname"><span class="pre">FieldFromFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#quvac.field.abc.FieldFromFile" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#quvac.field.abc.Field" title="quvac.field.abc.Field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Field</span></code></a></p>
 <p>For fields that are loaded from file.</p>
 <p>Not implemented yet.</p>
@@ -489,9 +587,16 @@ is corrected to the desired value.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">quvac.field.abc</a><ul>
+<li><a class="reference internal" href="#attributes">Attributes</a></li>
 <li><a class="reference internal" href="#classes">Classes</a></li>
 <li><a class="reference internal" href="#module-contents">Module Contents</a><ul>
+<li><a class="reference internal" href="#quvac.field.abc.ANGLE_KEYS"><code class="docutils literal notranslate"><span class="pre">ANGLE_KEYS</span></code></a></li>
 <li><a class="reference internal" href="#quvac.field.abc.Field"><code class="docutils literal notranslate"><span class="pre">Field</span></code></a><ul>
+<li><a class="reference internal" href="#quvac.field.abc.Field.get_rotation"><code class="docutils literal notranslate"><span class="pre">Field.get_rotation()</span></code></a></li>
+<li><a class="reference internal" href="#quvac.field.abc.Field.rotate_coordinates"><code class="docutils literal notranslate"><span class="pre">Field.rotate_coordinates()</span></code></a></li>
+<li><a class="reference internal" href="#quvac.field.abc.Field.get_EB_out"><code class="docutils literal notranslate"><span class="pre">Field.get_EB_out()</span></code></a></li>
+<li><a class="reference internal" href="#quvac.field.abc.Field.rotate_fields_back"><code class="docutils literal notranslate"><span class="pre">Field.rotate_fields_back()</span></code></a></li>
+<li><a class="reference internal" href="#quvac.field.abc.Field.convert_fields_to_real"><code class="docutils literal notranslate"><span class="pre">Field.convert_fields_to_real()</span></code></a></li>
 <li><a class="reference internal" href="#quvac.field.abc.Field.calculate_field"><code class="docutils literal notranslate"><span class="pre">Field.calculate_field()</span></code></a></li>
 </ul>
 </li>

@@ -215,6 +215,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../external_field/index.html">quvac.field.external_field</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../gaussian/index.html">quvac.field.gaussian</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../maxwell/index.html">quvac.field.maxwell</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../model/index.html">quvac.field.model</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../utils/index.html">quvac.field.utils</a></li>
 </ul>
 </li>
@@ -385,19 +386,6 @@ PRL 104.22 (2010): 220404.</p>
 <p>Dipole wave expression is from <a class="footnote-reference brackets" href="#id1" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
 <p>d0 is along ez by default.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="quvac.field.dipole.DipoleAnalytic.get_rotation">
-<span class="sig-name descname"><span class="pre">get_rotation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#quvac.field.dipole.DipoleAnalytic.get_rotation" title="Link to this definition">¶</a></dt>
-<dd><p>Defines the rotation transforming (0,0,1) -&gt; (kx,ky,kz)
-for vectors and (1,0,0) -&gt; e(beta) = e1*cos(beta) + e2*sin(beta).</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="quvac.field.dipole.DipoleAnalytic.rotate_coordinates">
-<span class="sig-name descname"><span class="pre">rotate_coordinates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#quvac.field.dipole.DipoleAnalytic.rotate_coordinates" title="Link to this definition">¶</a></dt>
-<dd><p>Rotates the coordinate grid.</p>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="quvac.field.dipole.DipoleAnalytic.set_envelope_expressions">
 <span class="sig-name descname"><span class="pre">set_envelope_expressions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#quvac.field.dipole.DipoleAnalytic.set_envelope_expressions" title="Link to this definition">¶</a></dt>
 <dd><p>Defines envelope expressions.</p>
@@ -506,8 +494,6 @@ at focus.</p>
 <li><a class="reference internal" href="#functions">Functions</a></li>
 <li><a class="reference internal" href="#module-contents">Module Contents</a><ul>
 <li><a class="reference internal" href="#quvac.field.dipole.DipoleAnalytic"><code class="docutils literal notranslate"><span class="pre">DipoleAnalytic</span></code></a><ul>
-<li><a class="reference internal" href="#quvac.field.dipole.DipoleAnalytic.get_rotation"><code class="docutils literal notranslate"><span class="pre">DipoleAnalytic.get_rotation()</span></code></a></li>
-<li><a class="reference internal" href="#quvac.field.dipole.DipoleAnalytic.rotate_coordinates"><code class="docutils literal notranslate"><span class="pre">DipoleAnalytic.rotate_coordinates()</span></code></a></li>
 <li><a class="reference internal" href="#quvac.field.dipole.DipoleAnalytic.set_envelope_expressions"><code class="docutils literal notranslate"><span class="pre">DipoleAnalytic.set_envelope_expressions()</span></code></a></li>
 <li><a class="reference internal" href="#quvac.field.dipole.DipoleAnalytic.check_energy"><code class="docutils literal notranslate"><span class="pre">DipoleAnalytic.check_energy()</span></code></a></li>
 <li><a class="reference internal" href="#quvac.field.dipole.DipoleAnalytic.calculate_field"><code class="docutils literal notranslate"><span class="pre">DipoleAnalytic.calculate_field()</span></code></a></li>

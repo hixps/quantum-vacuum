@@ -213,6 +213,7 @@
 <li class="toctree-l4"><a class="reference internal" href="autoapi/quvac/field/external_field/index.html">quvac.field.external_field</a></li>
 <li class="toctree-l4"><a class="reference internal" href="autoapi/quvac/field/gaussian/index.html">quvac.field.gaussian</a></li>
 <li class="toctree-l4"><a class="reference internal" href="autoapi/quvac/field/maxwell/index.html">quvac.field.maxwell</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/quvac/field/model/index.html">quvac.field.model</a></li>
 <li class="toctree-l4"><a class="reference internal" href="autoapi/quvac/field/utils/index.html">quvac.field.utils</a></li>
 </ul>
 </li>
@@ -281,15 +282,17 @@
           <li><a href="autoapi/quvac/field/maxwell/index.html#quvac.field.maxwell.MaxwellMultiple.a1">(quvac.field.maxwell.MaxwellMultiple attribute)</a>
 </li>
         </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="autoapi/quvac/field/abc/index.html#quvac.field.abc.ExplicitField.a2">a2 (quvac.field.abc.ExplicitField attribute)</a>
 
         <ul>
           <li><a href="autoapi/quvac/field/maxwell/index.html#quvac.field.maxwell.MaxwellMultiple.a2">(quvac.field.maxwell.MaxwellMultiple attribute)</a>
 </li>
         </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="autoapi/quvac/field/index.html#quvac.field.ANALYTIC_FIELDS">ANALYTIC_FIELDS (in module quvac.field)</a>
+</li>
+        <li><a href="autoapi/quvac/field/abc/index.html#quvac.field.abc.ANGLE_KEYS">ANGLE_KEYS (in module quvac.field.abc)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -320,6 +323,8 @@
 </li>
           <li><a href="autoapi/quvac/field/maxwell/index.html#quvac.field.maxwell.MaxwellMultiple.calculate_field">(quvac.field.maxwell.MaxwellMultiple method)</a>
 </li>
+          <li><a href="autoapi/quvac/field/model/index.html#quvac.field.model.EBInhomogeneity.calculate_field">(quvac.field.model.EBInhomogeneity method)</a>
+</li>
         </ul></li>
         <li><a href="autoapi/quvac/field/gaussian/index.html#quvac.field.gaussian.GaussianAnalytic.calculate_ho_orders">calculate_ho_orders() (quvac.field.gaussian.GaussianAnalytic method)</a>
 </li>
@@ -340,8 +345,12 @@
         <ul>
           <li><a href="autoapi/quvac/field/gaussian/index.html#quvac.field.gaussian.GaussianAnalytic.check_energy">(quvac.field.gaussian.GaussianAnalytic method)</a>
 </li>
+          <li><a href="autoapi/quvac/field/model/index.html#quvac.field.model.EBInhomogeneity.check_energy">(quvac.field.model.EBInhomogeneity method)</a>
+</li>
         </ul></li>
         <li><a href="autoapi/quvac/simulation_parallel/index.html#quvac.simulation_parallel.collect_results">collect_results() (in module quvac.simulation_parallel)</a>
+</li>
+        <li><a href="autoapi/quvac/field/abc/index.html#quvac.field.abc.Field.convert_fields_to_real">convert_fields_to_real() (quvac.field.abc.Field method)</a>
 </li>
         <li><a href="autoapi/quvac/field/utils/index.html#quvac.field.utils.convert_tau">convert_tau() (in module quvac.field.utils)</a>
 </li>
@@ -385,12 +394,14 @@
   <h2>E</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="autoapi/quvac/field/abc/index.html#quvac.field.abc.ExplicitField.Ef">Ef (quvac.field.abc.ExplicitField attribute)</a>
+        <li><a href="autoapi/quvac/field/model/index.html#quvac.field.model.EBInhomogeneity">EBInhomogeneity (class in quvac.field.model)</a>
 </li>
-        <li><a href="autoapi/quvac/field/abc/index.html#quvac.field.abc.ExplicitField.Ef_fftw">Ef_fftw (quvac.field.abc.ExplicitField attribute)</a>
+        <li><a href="autoapi/quvac/field/abc/index.html#quvac.field.abc.ExplicitField.Ef">Ef (quvac.field.abc.ExplicitField attribute)</a>
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="autoapi/quvac/field/abc/index.html#quvac.field.abc.ExplicitField.Ef_fftw">Ef_fftw (quvac.field.abc.ExplicitField attribute)</a>
+</li>
         <li><a href="autoapi/quvac/field/abc/index.html#quvac.field.abc.ExplicitField">ExplicitField (class in quvac.field.abc)</a>
 </li>
         <li><a href="autoapi/quvac/field/external_field/index.html#quvac.field.external_field.ExternalField">ExternalField (class in quvac.field.external_field)</a>
@@ -453,7 +464,11 @@
 </li>
         <li><a href="autoapi/quvac/postprocess/index.html#quvac.postprocess.VacuumEmissionAnalyzer.get_discernible_signal">get_discernible_signal() (quvac.postprocess.VacuumEmissionAnalyzer method)</a>
 </li>
+        <li><a href="autoapi/quvac/field/abc/index.html#quvac.field.abc.Field.get_EB_out">get_EB_out() (quvac.field.abc.Field method)</a>
+</li>
         <li><a href="autoapi/quvac/grid/index.html#quvac.grid.get_ek">get_ek() (in module quvac.grid)</a>
+</li>
+        <li><a href="autoapi/quvac/field/model/index.html#quvac.field.model.EBInhomogeneity.get_envelope">get_envelope() (quvac.field.model.EBInhomogeneity method)</a>
 </li>
         <li><a href="autoapi/quvac/field/utils/index.html#quvac.field.utils.get_field_energy">get_field_energy() (in module quvac.field.utils)</a>
 </li>
@@ -483,10 +498,10 @@
 </li>
         <li><a href="autoapi/quvac/log/index.html#quvac.log.get_performance_stats">get_performance_stats() (in module quvac.log)</a>
 </li>
-        <li><a href="autoapi/quvac/postprocess/index.html#quvac.postprocess.VacuumEmissionAnalyzer.get_perp_signal">get_perp_signal() (quvac.postprocess.VacuumEmissionAnalyzer method)</a>
-</li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="autoapi/quvac/postprocess/index.html#quvac.postprocess.VacuumEmissionAnalyzer.get_perp_signal">get_perp_signal() (quvac.postprocess.VacuumEmissionAnalyzer method)</a>
+</li>
         <li><a href="autoapi/quvac/postprocess/index.html#quvac.postprocess.VacuumEmissionAnalyzer.get_photon_spectrum_from_a12">get_photon_spectrum_from_a12() (quvac.postprocess.VacuumEmissionAnalyzer method)</a>
 </li>
         <li><a href="autoapi/quvac/grid/index.html#quvac.grid.get_pol_basis">get_pol_basis() (in module quvac.grid)</a>
@@ -501,12 +516,8 @@
 </li>
         <li><a href="autoapi/quvac/log/index.html#quvac.log.get_postprocess_stats">get_postprocess_stats() (in module quvac.log)</a>
 </li>
-        <li><a href="autoapi/quvac/field/dipole/index.html#quvac.field.dipole.DipoleAnalytic.get_rotation">get_rotation() (quvac.field.dipole.DipoleAnalytic method)</a>
-
-        <ul>
-          <li><a href="autoapi/quvac/field/gaussian/index.html#quvac.field.gaussian.GaussianAnalytic.get_rotation">(quvac.field.gaussian.GaussianAnalytic method)</a>
+        <li><a href="autoapi/quvac/field/abc/index.html#quvac.field.abc.Field.get_rotation">get_rotation() (quvac.field.abc.Field method)</a>
 </li>
-        </ul></li>
         <li><a href="autoapi/quvac/postprocess/index.html#quvac.postprocess.VacuumEmissionAnalyzer.get_signal_a12">get_signal_a12() (quvac.postprocess.VacuumEmissionAnalyzer method)</a>
 </li>
         <li><a href="autoapi/quvac/postprocess/index.html#quvac.postprocess.VacuumEmissionAnalyzer.get_signal_on_sph_grid">get_signal_on_sph_grid() (quvac.postprocess.VacuumEmissionAnalyzer method)</a>
@@ -620,6 +631,8 @@
           <li><a href="autoapi/quvac/field/gaussian/index.html#module-quvac.field.gaussian">quvac.field.gaussian</a>
 </li>
           <li><a href="autoapi/quvac/field/maxwell/index.html#module-quvac.field.maxwell">quvac.field.maxwell</a>
+</li>
+          <li><a href="autoapi/quvac/field/model/index.html#module-quvac.field.model">quvac.field.model</a>
 </li>
           <li><a href="autoapi/quvac/field/utils/index.html#module-quvac.field.utils">quvac.field.utils</a>
 </li>
@@ -756,12 +769,21 @@
 </li>
         </ul></li>
         <li>
+    quvac.field.model
+
+        <ul>
+          <li><a href="autoapi/quvac/field/model/index.html#module-quvac.field.model">module</a>
+</li>
+        </ul></li>
+        <li>
     quvac.field.utils
 
         <ul>
           <li><a href="autoapi/quvac/field/utils/index.html#module-quvac.field.utils">module</a>
 </li>
         </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li>
     quvac.grid
 
@@ -769,8 +791,6 @@
           <li><a href="autoapi/quvac/grid/index.html#module-quvac.grid">module</a>
 </li>
         </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li>
     quvac.integrator
 
@@ -848,14 +868,12 @@
     <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="autoapi/quvac/utils/index.html#quvac.utils.read_yaml">read_yaml() (in module quvac.utils)</a>
 </li>
-        <li><a href="autoapi/quvac/field/dipole/index.html#quvac.field.dipole.DipoleAnalytic.rotate_coordinates">rotate_coordinates() (quvac.field.dipole.DipoleAnalytic method)</a>
-
-        <ul>
-          <li><a href="autoapi/quvac/field/gaussian/index.html#quvac.field.gaussian.GaussianAnalytic.rotate_coordinates">(quvac.field.gaussian.GaussianAnalytic method)</a>
+        <li><a href="autoapi/quvac/field/abc/index.html#quvac.field.abc.Field.rotate_coordinates">rotate_coordinates() (quvac.field.abc.Field method)</a>
 </li>
-        </ul></li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="autoapi/quvac/field/abc/index.html#quvac.field.abc.Field.rotate_fields_back">rotate_fields_back() (quvac.field.abc.Field method)</a>
+</li>
         <li><a href="autoapi/quvac/simulation/index.html#quvac.simulation.run_simulation">run_simulation() (in module quvac.simulation)</a>
 </li>
     </ul></td>
