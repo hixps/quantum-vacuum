@@ -8,7 +8,7 @@ quvac.field.abc
    Abstract interfaces for field classes.
 
    For details about spectral coefficient calculation (a1, a2)
-   refer to :doc:`implementation` section of documentation.
+   refer to :ref:`implementation` section of documentation.
 
 
 
@@ -47,17 +47,26 @@ Module Contents
 
    :param field_params: Dictionary containing the field parameters.
    :type field_params: dict
-   :param grid:    Spatial and spectral grid.
-
-                Attributes
+   :param grid: Spatial and spectral grid.
    :type grid: quvac.grid.GridXYZ
-   :param ----------:
-   :param grid_xyz: The spatial and spectral grid.
-   :type grid_xyz: quvac.grid.GridXYZ
-   :param rotation_m: Rotation matrix.
-   :type rotation_m: np.array
-   :param rotation_bwd_m: Inverse rotation matrix.
-   :type rotation_bwd_m: np.array
+
+   .. attribute:: grid_xyz
+
+      The spatial and spectral grid.
+
+      :type: quvac.grid.GridXYZ
+
+   .. attribute:: rotation_m
+
+      Rotation matrix.
+
+      :type: np.array
+
+   .. attribute:: rotation_bwd_m
+
+      Inverse rotation matrix.
+
+      :type: np.array
 
 
    .. py:method:: get_rotation()

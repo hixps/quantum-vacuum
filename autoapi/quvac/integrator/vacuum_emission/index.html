@@ -285,7 +285,7 @@ All fields are treated as external.</p>
 probe channel signal.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>For details on implementation check out <span class="xref std std-doc">implementation</span> section.</p>
+<p>For details on implementation check out <a class="reference internal" href="../../../../implementation.html#implementation"><span class="std std-ref">Implementation</span></a> section.</p>
 </div>
 <section id="classes">
 <h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">¶</a></h2>
@@ -303,7 +303,7 @@ probe channel signal.</p>
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="quvac.integrator.vacuum_emission.VacuumEmission">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quvac.integrator.vacuum_emission.</span></span><span class="sig-name descname"><span class="pre">VacuumEmission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nthreads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#quvac.integrator.vacuum_emission.VacuumEmission" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quvac.integrator.vacuum_emission.</span></span><span class="sig-name descname"><span class="pre">VacuumEmission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nthreads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/quvac/integrator/vacuum_emission.html#VacuumEmission"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quvac.integrator.vacuum_emission.VacuumEmission" title="Link to this definition">¶</a></dt>
 <dd><p>Calculator of Vacuum Emission amplitude from given fields</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -319,25 +319,25 @@ Default is False.</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="quvac.integrator.vacuum_emission.VacuumEmission.calculate_one_time_step">
-<span class="sig-name descname"><span class="pre">calculate_one_time_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#quvac.integrator.vacuum_emission.VacuumEmission.calculate_one_time_step" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">calculate_one_time_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/quvac/integrator/vacuum_emission.html#VacuumEmission.calculate_one_time_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quvac.integrator.vacuum_emission.VacuumEmission.calculate_one_time_step" title="Link to this definition">¶</a></dt>
 <dd><p>Calculate the field and U terms (integrand) for one time step.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quvac.integrator.vacuum_emission.VacuumEmission.calculate_time_integral">
-<span class="sig-name descname"><span class="pre">calculate_time_integral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'trapezoid'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#quvac.integrator.vacuum_emission.VacuumEmission.calculate_time_integral" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">calculate_time_integral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'trapezoid'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/quvac/integrator/vacuum_emission.html#VacuumEmission.calculate_time_integral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quvac.integrator.vacuum_emission.VacuumEmission.calculate_time_integral" title="Link to this definition">¶</a></dt>
 <dd><p>Calculate the time integral.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quvac.integrator.vacuum_emission.VacuumEmission.calculate_amplitudes">
-<span class="sig-name descname"><span class="pre">calculate_amplitudes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'trapezoid'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#quvac.integrator.vacuum_emission.VacuumEmission.calculate_amplitudes" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">calculate_amplitudes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'trapezoid'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/quvac/integrator/vacuum_emission.html#VacuumEmission.calculate_amplitudes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quvac.integrator.vacuum_emission.VacuumEmission.calculate_amplitudes" title="Link to this definition">¶</a></dt>
 <dd><p>Calculate the vacuum emission amplitudes and save the result.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quvac.integrator.vacuum_emission.VacuumEmission.save_amplitudes">
-<span class="sig-name descname"><span class="pre">save_amplitudes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#quvac.integrator.vacuum_emission.VacuumEmission.save_amplitudes" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">save_amplitudes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/quvac/integrator/vacuum_emission.html#VacuumEmission.save_amplitudes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quvac.integrator.vacuum_emission.VacuumEmission.save_amplitudes" title="Link to this definition">¶</a></dt>
 <dd><p>Save the calculated amplitudes to a file.</p>
 </dd></dl>
 

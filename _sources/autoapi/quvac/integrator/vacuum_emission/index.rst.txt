@@ -16,7 +16,7 @@ quvac.integrator.vacuum_emission
    probe channel signal.
 
    .. note::
-       For details on implementation check out :doc:`implementation` section.
+       For details on implementation check out :ref:`implementation` section.
 
 
 

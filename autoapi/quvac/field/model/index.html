@@ -278,11 +278,9 @@
           <section id="module-quvac.field.model">
 <span id="quvac-field-model"></span><h1>quvac.field.model<a class="headerlink" href="#module-quvac.field.model" title="Link to this heading">¶</a></h1>
 <p>Model fields.</p>
-<p>Currently implements:
-1. Model electric/magnetic field with inhomogeneity in one direction</p>
-<blockquote>
-<div><p>and infinite transverse extend in others. Adapted from <a class="footnote-reference brackets" href="#id2" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
-</div></blockquote>
+<p>Currently implements:</p>
+<p>1. Model electric/magnetic field with inhomogeneity in one direction
+and infinite transverse extend in others. Adapted from <a class="footnote-reference brackets" href="#id2" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
 <hr class="docutils" />
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="id2" role="doc-footnote">
@@ -308,7 +306,7 @@ as a new signature of quantum vacuum nonlinearity.” NJP 15.8 (2013):
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="quvac.field.model.EBInhomogeneity">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quvac.field.model.</span></span><span class="sig-name descname"><span class="pre">EBInhomogeneity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#quvac.field.model.EBInhomogeneity" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quvac.field.model.</span></span><span class="sig-name descname"><span class="pre">EBInhomogeneity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/quvac/field/model.html#EBInhomogeneity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quvac.field.model.EBInhomogeneity" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../abc/index.html#quvac.field.abc.Field" title="quvac.field.abc.Field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quvac.field.abc.Field</span></code></a></p>
 <p>Model inhomogeneities of electric/magnetic field.</p>
 <p>Field is of type B = B(z) * eB.</p>
@@ -365,18 +363,26 @@ as a new signature of quantum vacuum nonlinearity.” NJP 15.8 (2013):
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="quvac.field.model.EBInhomogeneity.get_envelope">
-<span class="sig-name descname"><span class="pre">get_envelope</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#quvac.field.model.EBInhomogeneity.get_envelope" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">get_envelope</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/quvac/field/model.html#EBInhomogeneity.get_envelope"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quvac.field.model.EBInhomogeneity.get_envelope" title="Link to this definition">¶</a></dt>
+<dd><p>Define the envelope function for the field.</p>
+<p>The envelope function is defined based on the <cite>envelope_type</cite> parameter.
+Currently, only the Gaussian envelope type is supported.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NotImplementedError</strong> – If the <cite>envelope_type</cite> is not supported.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quvac.field.model.EBInhomogeneity.check_energy">
-<span class="sig-name descname"><span class="pre">check_energy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#quvac.field.model.EBInhomogeneity.check_energy" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">check_energy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/quvac/field/model.html#EBInhomogeneity.check_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quvac.field.model.EBInhomogeneity.check_energy" title="Link to this definition">¶</a></dt>
 <dd><p>Check and adjust the field energy.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quvac.field.model.EBInhomogeneity.calculate_field">
-<span class="sig-name descname"><span class="pre">calculate_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#quvac.field.model.EBInhomogeneity.calculate_field" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">calculate_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/quvac/field/model.html#EBInhomogeneity.calculate_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quvac.field.model.EBInhomogeneity.calculate_field" title="Link to this definition">¶</a></dt>
 <dd><p>Calculates fields for a given time step.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
