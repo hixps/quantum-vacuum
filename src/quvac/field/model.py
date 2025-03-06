@@ -68,22 +68,23 @@ class EBInhomogeneity(Field):
         # get envelope
         self.get_envelope()
 
-        if "W" in field_params:
-            self.check_energy()
-
-        # define field calculation dict
-        self.field_dict = {
-            "E0": self.E0,
-            "x": self.x,
-            "y": self.y,
-            "z": self.z,
-        }
-        self.field_dict.update(self.envelope_kwargs)
         self.E_expr = f"E0 * {self.envelope}"
 
         EB_keys = "Ex Ey Ez Bx By Bz".split()
         for key in EB_keys:
             setattr(self, key, 0.)
+
+        if "W" in field_params:
+            self.check_energy()
+
+        # define field calculation dict
+        # self.field_dict = {
+        #     "E0": self.E0,
+        #     "x": self.x,
+        #     "y": self.y,
+        #     "z": self.z,
+        # }
+        # self.field_dict.update(self.envelope_kwargs)
 
     def get_rotation(self):
         """
@@ -130,7 +131,7 @@ class EBInhomogeneity(Field):
             self.W_num = W * self.E0**2
     
     def calculate_field(self, t, E_out=None, B_out=None):
-        E = ne.evaluate(self.E_expr, global_dict=self.field_dict).astype(config.FDTYPE)
+        E = ne.evaluate(self.E_expr, global_dict=self.__dict__).astype(config.FDTYPE)
 
         if self.field_inhom == "electric":
             self.Ez = E
