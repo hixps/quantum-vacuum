@@ -2,7 +2,7 @@
 Abstract interfaces for field classes.
 
 For details about spectral coefficient calculation (a1, a2)
-refer to :doc:`implementation` section of documentation. 
+refer to :ref:`implementation` section of documentation. 
 """
 
 import logging
@@ -35,7 +35,7 @@ class Field(ABC):
     grid : quvac.grid.GridXYZ
         Spatial and spectral grid.
 
-     Attributes
+    Attributes
     ----------
     grid_xyz : quvac.grid.GridXYZ
         The spatial and spectral grid.

@@ -2,8 +2,9 @@
 Model fields.
 
 Currently implements:
+
 1. Model electric/magnetic field with inhomogeneity in one direction
-    and infinite transverse extend in others. Adapted from [1]_.
+and infinite transverse extend in others. Adapted from [1]_.
 
 ----
 
@@ -70,6 +71,17 @@ class EBInhomogeneity(Field):
             self.check_energy()
     
     def get_envelope(self):
+        """
+        Define the envelope function for the field.
+
+        The envelope function is defined based on the `envelope_type` parameter. 
+        Currently, only the Gaussian envelope type is supported.
+
+        Raises
+        ------
+        NotImplementedError
+            If the `envelope_type` is not supported.
+        """
         match self.envelope_type:
             case "gauss":
                 self.envelope = "exp(-(2*z/w0)**2)"
