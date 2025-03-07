@@ -212,7 +212,7 @@ def plot_fields(field, t, plot_keys=None, cmap='coolwarm',
             plt.plot(axs[j], np.abs(slc))
             I0 = np.abs(slc).max()
             if norm_lim:
-                plt.ylim(I0*norm_lim, I0)
+                plt.ylim(I0*norm_lim, 3*I0)
             plt.yscale("log")
             plt.xlabel(f"{axs_names[j]} [$\\mu$m]")
             if j == 0:
