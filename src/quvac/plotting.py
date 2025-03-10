@@ -210,6 +210,9 @@ def plot_fields(field, t, plot_keys=None, cmap='coolwarm',
         for j,slc in enumerate(slices):
             plt.subplot(n_rows, n_cols, i*n_cols+j+1)
             plt.plot(axs[j], np.abs(slc))
+            I0 = np.abs(slc).max()
+            if norm_lim:
+                plt.ylim(I0*norm_lim, 3*I0)
             plt.yscale("log")
             plt.xlabel(f"{axs_names[j]} [$\\mu$m]")
             if j == 0:
