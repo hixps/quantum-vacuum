@@ -242,6 +242,8 @@ def create_multibeam(params, n_beams=6, mode='belt', theta0=0, geometry="xz", id
         Initial angle for the beams, by default 0.
     geometry : str, optional
         Geometry of the beam configuration ('xz', 'yz', or 'xy'), by default 'xz'.
+    idx0 : int, optional
+        Offset index for `beams` dictionary.
 
     Returns
     -------
@@ -257,22 +259,26 @@ def create_multibeam(params, n_beams=6, mode='belt', theta0=0, geometry="xz", id
     beams = {}
     if mode == "sphere":
         n_beams = n_beams // 3
-        phi_arr = [0, 45, -45]
-    theta_c = 360/n_beams
+        theta_arr = [0, 45, -45]
+    phi_c = 360/n_beams
 
-    # create geometry
     for i in range(n_beams):
-        params_beam = deepcopy(params)
-        params_beam, key_theta, key_phi = rotate_multibeam(params_beam, geometry)
-        params_beam['W'] = W_per_beam
-        params_beam[key_theta] = i*theta_c + theta0
-        match mode:
-            case "belt":
-                beams[f"field_{i+1+idx0}"] = params_beam
-            case "sphere":
-                for j,phi in enumerate(phi_arr):
-                    idx = i*3 + j
-                    params_phi = deepcopy(params_beam)
-                    params_phi[key_phi] += phi
-                    beams[f"field_{idx+1+idx0}"] = params_phi
+        pass
+    # theta_c = 360/n_beams
+
+    # # create geometry
+    # for i in range(n_beams):
+    #     params_beam = deepcopy(params)
+    #     params_beam, key_theta, key_phi = rotate_multibeam(params_beam, geometry)
+    #     params_beam['W'] = W_per_beam
+    #     params_beam[key_theta] = i*theta_c + theta0
+    #     match mode:
+    #         case "belt":
+    #             beams[f"field_{i+1+idx0}"] = params_beam
+    #         case "sphere":
+    #             for j,phi in enumerate(phi_arr):
+    #                 idx = i*3 + j
+    #                 params_phi = deepcopy(params_beam)
+    #                 params_phi[key_phi] += phi
+    #                 beams[f"field_{idx+1+idx0}"] = params_phi
     return beams
