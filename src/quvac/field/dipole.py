@@ -13,6 +13,7 @@ configuration by compining several focused fields.
 """
 
 from copy import deepcopy
+import warnings
 
 import numexpr as ne
 import numpy as np
@@ -191,9 +192,9 @@ class DipoleAnalytic(ExplicitField):
 
         E_out, B_out = self.rotate_fields_back(E_out, B_out, mode)
         return E_out, B_out
-    
 
-def create_multibeam(params, n_beams=6, mode='belt', theta0=0):
+
+def create_multibeam(params, n_beams=6, mode='belt', phi0=0, idx0=1):
     """
     Create multibeam configuration from several focused pulses to 
     approximate the dipole wave and achieve higher intensity 
@@ -207,8 +208,10 @@ def create_multibeam(params, n_beams=6, mode='belt', theta0=0):
         Number of beams, by default 6.
     mode : str, optional
         Configuration mode, either 'belt' or 'sphere', by default 'belt'.
-    theta0 : float, optional
+    phi0 : float, optional
         Initial angle for the beams, by default 0.
+    idx0 : int, optional
+        Offset index for `beams` dictionary.
 
     Returns
     -------
@@ -224,21 +227,21 @@ def create_multibeam(params, n_beams=6, mode='belt', theta0=0):
     beams = {}
     if mode == "sphere":
         n_beams = n_beams // 3
-        phi_arr = [0, 45, -45]
-    theta_c = 360/n_beams
+        theta_arr = [0, 45, -45]
+    phi_c = 360/n_beams
 
-    # create geometry
     for i in range(n_beams):
         params_beam = deepcopy(params)
-        params_beam['W'] = W_per_beam
-        params_beam['theta'] = i*theta_c + theta0
+        params_beam["W"] = W_per_beam
+        params_beam["phi"] = i*phi_c + phi0
+        params_beam["theta"] = 90
         match mode:
             case "belt":
-                beams[f"field_{i+1}"] = params_beam
+                beams[f"field_{i+1+idx0}"] = params_beam
             case "sphere":
-                for j,phi in enumerate(phi_arr):
+                for j,theta in enumerate(theta_arr):
                     idx = i*3 + j
                     params_phi = deepcopy(params_beam)
-                    params_phi['phi'] = phi
-                    beams[f"field_{idx+1}"] = params_phi
+                    params_phi["theta"] += theta
+                    beams[f"field_{idx+1+idx0}"] = params_phi
     return beams
