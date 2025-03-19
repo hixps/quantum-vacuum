@@ -93,23 +93,25 @@ def plot_mollweide(fig, ax, phi, theta, data, cmap='coolwarm', norm=None):
     """
     _check_matplotlib()
     theta_ = theta - np.pi/2
+    # flip theta axis so mollweide plot shows usual sphere surface
+    theta_ = theta_[::-1]
     phi_ = phi - np.pi
     phi_mesh, theta_mesh = np.meshgrid(phi_, theta_)
     
     im = ax.pcolormesh(phi_mesh, theta_mesh, data, cmap=cmap,
                        shading='gouraud', rasterized=True, norm=norm)
-    fig.colorbar(im, ax=ax, shrink=0.5)
+    cbar = fig.colorbar(im, ax=ax, shrink=0.5)
 
     ax.set_xticks([-2, -1, 0, 1, 2])
     ax.set_yticks([-1.5, -1, -0.5, 0, 0.5, 1, 1.5])
     xtick_labels = np.linspace(60, 360, 5, endpoint=False, dtype=int)
     ax.xaxis.set_ticklabels(r'$%s^{\circ}$' %num for num in xtick_labels)
-    ytick_labels = np.linspace(0, 180, 7, endpoint=True, dtype=int)
+    ytick_labels = np.linspace(0, 180, 7, endpoint=True, dtype=int)[::-1]
     ax.yaxis.set_ticklabels(r'$%s^{\circ}$' %num for num in ytick_labels)
     for item in ax.xaxis.get_ticklabels() + ax.yaxis.get_ticklabels():
         item.set_fontsize(18)
     ax.grid()
-    return ax
+    return ax, cbar
 
 
 def plot_fields(field, t, plot_keys=None, cmap='coolwarm',
