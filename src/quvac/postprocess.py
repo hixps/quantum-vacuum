@@ -285,7 +285,7 @@ def signal_in_detector(dN, theta, phi, detector, align_to_max=False):
         dN_det = dN[idx_theta][:,idx_phi]
         theta_det, phi_det = theta[idx_theta], phi[idx_phi]
 
-    N_detected = np.sum(dN_det * np.sin(theta_det)) * dphi * dtheta
+    N_detected = np.sum(dN_det * np.sin(theta_det)[:,None]) * dphi * dtheta
     # N_detected = integrate_spherical(dN_det, [theta_det, phi_det],
     #                                  axs_names=['theta','phi'],
     #                                  axs_integrate=['theta','phi'])
