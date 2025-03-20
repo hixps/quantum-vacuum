@@ -6,6 +6,7 @@ import argparse
 import os
 import time
 from pathlib import Path
+from copy import deepcopy
 
 import numpy as np
 from ax.service.ax_client import AxClient, ObjectiveProperties
@@ -32,6 +33,33 @@ def prepare_params_for_ax(params, ini_file):
     return params_ax
 
 
+def update_energies(ini_data, energy_params):
+    ini = deepcopy(ini_data)
+    optimization_params = ini["optimization"]
+    energy_fields = optimization_params["energy_fields"]
+    fields, opt_fields = [energy_fields[key] for key
+                          in "fields optimized_fields".split()]
+    err_msg = ("While optimizing energy distribution, it is required to have "
+               "exactly one more fields than free parameters")
+    assert len(fields) == len(opt_fields)+1, err_msg
+
+    optimization_params = ini_data["optimization"]
+    scales = optimization_params.get("scales", {})
+    scale = scales.get("W", 1)
+
+    W_total = 0
+    for param_key, param in energy_params.items():
+        category, key = param_key.split(":")
+        ini["fields"][category][key] = float(param * scale)
+        W_total += param
+    
+    # fix energy of remaining field
+    idx_remain = list(set(fields) - set(opt_fields))[0]
+    W_remain = np.max(1 - W_total, 0.)
+    ini["fields"][f"field_{idx_remain}"]["W"] = float(W_remain * scale)
+    return ini
+
+
 def quvac_evaluation(params):
     ini_file = params["ini_default"]
     ini_data = read_yaml(ini_file)
@@ -46,11 +74,18 @@ def quvac_evaluation(params):
     save_folder = ini_data.get("save_path", os.path.dirname(ini_file))
     save_path = os.path.join(save_folder, trial_str)
 
+    energy_params = {}
     # Update_parameters for current trial
     for param_key, param in params.items():
         category, key = param_key.split(":")
-        scale = scales.get(key, 1)
-        ini_data["fields"][category][key] = float(param * scale)
+        if key != "W":
+            scale = scales.get(key, 1)
+            ini_data["fields"][category][key] = float(param * scale)
+        else:
+            energy_params[param_key] = param
+
+    if energy_params:        
+        ini_data = update_energies(ini_data, energy_params)
 
     # Save ini file
     ini_path = os.path.join(save_path, "ini.yml")
