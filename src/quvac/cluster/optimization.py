@@ -13,6 +13,7 @@ from ax.service.ax_client import AxClient, ObjectiveProperties
 from submitit import AutoExecutor, DebugJob, LocalJob
 
 from quvac.cluster.config import DEFAULT_SUBMITIT_PARAMS
+from quvac.postprocess import signal_in_detector, integrate_spherical
 from quvac.simulation import quvac_simulation
 from quvac.utils import read_yaml, write_yaml
 
@@ -31,6 +32,15 @@ def prepare_params_for_ax(params, ini_file):
             params_ax.append(param_descr)
     params_ax.append({"name": "ini_default", "type": "fixed", "value": ini_file})
     return params_ax
+
+
+def objective_signal_in_detector(data, obj_params):
+    detector = obj_params["detector"]
+    k, theta, phi, N_sph = [data[key] for key in "k theta phi N_sph".split()]
+    N_angular = integrate_spherical(N_sph, (k,theta,phi), axs_integrate=['k'])
+    N_detector = signal_in_detector(N_angular, theta, phi, detector,
+                                    align_to_max=False)
+    return N_detector
 
 
 def update_energies(ini_data, energy_params):
@@ -67,6 +77,7 @@ def quvac_evaluation(params):
     trial_idx = params.pop("trial_idx")
 
     optimization_params = ini_data["optimization"]
+    obj_params = optimization_params.get("objectives_params", {})
     scales = optimization_params.get("scales", {})
 
     # Create ini.yml file for current trial
@@ -104,6 +115,9 @@ def quvac_evaluation(params):
         "N_disc": (float(N_disc), 0.0),
         "N_total": (float(N_total), 0.0),
     }
+    if "detector" in obj_params:
+        N_detector = objective_signal_in_detector(data, obj_params)
+        metrics["N_detector"] = (float(N_detector), 0.0)
     return metrics
 
 
@@ -222,7 +236,7 @@ def cluster_optimization(ini_file, save_path=None, wisdom_file=None):
 
     executor = AutoExecutor(folder=log_folder, cluster=cluster)
     if cluster == "slurm":
-        # executor.update_parameters(slurm_array_parallelism=max_parallel_jobs)
+        executor.update_parameters(slurm_array_parallelism=max_parallel_jobs)
         executor.update_parameters(**sbatch_params)
     elif "timeout_min" in cluster_params:
         executor.update_parameters(timeout_min=cluster_params["timeout_min"])
