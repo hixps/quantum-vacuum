@@ -33,7 +33,8 @@ def prepare_params_for_ax(params, ini_file):
 
 
 def quvac_evaluation(params):
-    ini_data = read_yaml(params["ini_default"])
+    ini_file = params["ini_default"]
+    ini_data = read_yaml(ini_file)
     params.pop("ini_default")
     trial_idx = params.pop("trial_idx")
 
@@ -42,7 +43,7 @@ def quvac_evaluation(params):
 
     # Create ini.yml file for current trial
     trial_str = str(trial_idx).zfill(3)
-    save_folder = ini_data.get("save_path", os.path.dirname(params["ini_default"]))
+    save_folder = ini_data.get("save_path", os.path.dirname(ini_file))
     save_path = os.path.join(save_folder, trial_str)
 
     # Update_parameters for current trial
