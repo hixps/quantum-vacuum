@@ -47,7 +47,7 @@ def update_energies(ini_data, energy_params):
     scales = optimization_params.get("scales", {})
     scale = scales.get("W", 1)
 
-    W_total = 0
+    W_total = 0.
     for param_key, param in energy_params.items():
         category, key = param_key.split(":")
         ini["fields"][category][key] = float(param * scale)
@@ -55,7 +55,7 @@ def update_energies(ini_data, energy_params):
     
     # fix energy of remaining field
     idx_remain = list(set(fields) - set(opt_fields))[0]
-    W_remain = np.max(1 - W_total, 0.)
+    W_remain = np.max(1. - W_total, 0.)
     ini["fields"][f"field_{idx_remain}"]["W"] = float(W_remain * scale)
     return ini
 
