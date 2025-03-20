@@ -42,7 +42,7 @@ def quvac_evaluation(params):
 
     # Create ini.yml file for current trial
     trial_str = str(trial_idx).zfill(3)
-    save_folder = ini_data["save_path"]
+    save_folder = ini_data.get("save_path", os.path.dirname(params["ini_default"]))
     save_path = os.path.join(save_folder, trial_str)
 
     # Update_parameters for current trial
