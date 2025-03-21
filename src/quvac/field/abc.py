@@ -238,6 +238,26 @@ class ExplicitField(Field):
             for a in self.Ef
         ]
 
+    def _check_energy_kspace(self):
+        # Fix energy
+        W_upd = get_field_energy_kspace(
+            self.a1, self.a2, self.kabs, self.dVk, mode="without 1/k"
+        )
+        _logger.info(f"    Energy after projection in k-space: {W_upd:.3f} J")
+
+        if W_upd > 0:
+            self.a1 *= np.sqrt(self.W / W_upd)
+            self.a2 *= np.sqrt(self.W / W_upd)
+        else:
+            self.a1 *= 0
+            self.a2 *= 0
+
+        W_corrected = get_field_energy_kspace(
+            self.a1, self.a2, self.kabs, self.dVk, mode="without 1/k"
+        )
+        _logger.info(f'    Energy after "correction":          {W_corrected:.3f} J')
+        
+
     def get_a12(self, t0=None):
         """
         Calculates the a1 and a2 coefficients at a given time step.
@@ -276,19 +296,7 @@ class ExplicitField(Field):
             f"dV * (e2x*Efx + e2y*Efy + e2z*Efz)", global_dict=self.__dict__
         )
 
-        # Fix energy
-        W_upd = get_field_energy_kspace(
-            self.a1, self.a2, self.kabs, self.dVk, mode="without 1/k"
-        )
-        _logger.info(f"    Energy after projection in k-space: {W_upd:.3f} J")
-
-        self.a1 *= np.sqrt(self.W / W_upd)
-        self.a2 *= np.sqrt(self.W / W_upd)
-
-        W_corrected = get_field_energy_kspace(
-            self.a1, self.a2, self.kabs, self.dVk, mode="without 1/k"
-        )
-        _logger.info(f'    Energy after "correction":          {W_corrected:.3f} J')
+        self._check_energy_kspace()
 
         del self.Ef, self.Ef_fftw
         return self.a1, self.a2
