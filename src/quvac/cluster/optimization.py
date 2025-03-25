@@ -139,6 +139,23 @@ def update_energies(ini_data, energy_params):
 
 
 def collect_metrics(data, obj_params, metric_names=["N_total"]):
+    """
+    Collect metrics from simulation results.
+
+    Parameters
+    ----------
+    data : dict
+        Dictionary containing simulation results.
+    obj_params : dict
+        Dictionary containing objective parameters.
+    metric_names : list of str, optional
+        List of metric names to collect. Default is ["N_total"].
+
+    Returns
+    -------
+    dict
+        Dictionary containing the collected metrics.
+    """
     N_disc = data.get("N_disc", 0)
     N_total = data.get("N_total", 0)
 
@@ -164,6 +181,8 @@ def quvac_evaluation(params, metric_names=["N_total"]):
     ----------
     params : dict
         Dictionary containing trial parameters.
+    metric_names : list of str, optional
+        List of metric names to evaluate. Default is ["N_total"].
 
     Returns
     -------
@@ -209,20 +228,6 @@ def quvac_evaluation(params, metric_names=["N_total"]):
     # Load results
     data = np.load(os.path.join(save_path, "spectra_total.npz"))
     metrics = collect_metrics(data, obj_params, metric_names)
-    # N_disc = data.get("N_disc", 0)
-    # N_total = data.get("N_total", 0)
-
-    # metrics = {}
-    # metrics["N_total"] = (float(N_total), 0.0)
-    # if N_disc is not None:
-    #     metrics["N_disc"] = (float(N_disc), 0.0)
-    # # metrics = {
-    # #     "N_disc": (float(N_disc), 0.0),
-    # #     "N_total": (float(N_total), 0.0),
-    # # }
-    # if "detector" in obj_params:
-    #     N_detector = objective_signal_in_detector(data, obj_params)
-    #     metrics["N_detector"] = (float(N_detector), 0.0)
     return metrics
 
 
@@ -243,6 +248,8 @@ def run_optimization(ax_client, executor, n_trials, max_parallel_jobs, experimen
         Maximum number of parallel jobs to run.
     experiment_file : str
         Path to save the Ax experiment data.
+    metric_names : list of str, optional
+        List of metric names to evaluate. Default is ["N_total"].
 
     Returns
     -------
