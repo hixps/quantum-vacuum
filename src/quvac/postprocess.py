@@ -268,9 +268,10 @@ def signal_in_detector(dN, theta, phi, detector, align_to_max=False):
     -----
     The function integrates the signal over the specified detector region in spherical coordinates.
     """
-    phi0, theta0, dphi, dtheta = [np.radians(detector[key]) for key 
+    phi0, theta0, dphi0, dtheta0 = [np.radians(detector[key]) for key 
                                   in "phi0 theta0 dphi dtheta".split()]
-    idx_phi,idx_theta = _get_detector_idx(phi, theta, phi0, theta0, dphi, dtheta)
+    idx_phi,idx_theta = _get_detector_idx(phi, theta, phi0, theta0, dphi0, dtheta0)
+    dphi, dtheta = [ax[1]-ax[0] for ax in (phi, theta)]
     
     dN_det = dN[idx_theta][:,idx_phi]
     theta_det, phi_det = theta[idx_theta], phi[idx_phi]
@@ -280,13 +281,14 @@ def signal_in_detector(dN, theta, phi, detector, align_to_max=False):
         theta_max, phi_max = np.unravel_index(max_index, dN_det.shape)
         phi0_new, theta0_new = phi_det[phi_max], theta_det[theta_max]
         idx_phi,idx_theta = _get_detector_idx(phi, theta, phi0_new, theta0_new,
-                                              dphi, dtheta)
+                                              dphi0, dtheta0)
         dN_det = dN[idx_theta][:,idx_phi]
         theta_det, phi_det = theta[idx_theta], phi[idx_phi]
 
-    N_detected = integrate_spherical(dN_det, [theta_det, phi_det],
-                                     axs_names=['theta','phi'],
-                                     axs_integrate=['theta','phi'])
+    N_detected = np.sum(dN_det * np.sin(theta_det)[:,None]) * dphi * dtheta
+    # N_detected = integrate_spherical(dN_det, [theta_det, phi_det],
+    #                                  axs_names=['theta','phi'],
+    #                                  axs_integrate=['theta','phi'])
     return N_detected
     
 

@@ -30,21 +30,19 @@ def test_gridscan():
     Path(path).mkdir(parents=True, exist_ok=True)
 
     ini_file = os.path.join(path, "ini.yaml")
+    ini_data["variables"] = variables_data
     write_yaml(ini_file, ini_data)
-
-    variables_file = os.path.join(path, "variables.yaml")
-    write_yaml(variables_file, variables_data)
 
     # Launch simulation
     status = os.system(
-        f"{GRIDSCAN_SCRIPT} --input {ini_file} --variables {variables_file}"
+        f"{GRIDSCAN_SCRIPT} --input {ini_file}"
     )
     assert status == 0, "Script execution did not finish successfully"
 
     folders = [f"#field_2:beta_{beta}" for beta in beta_arr]
     data = []
     for folder in folders:
-        data_loc = np.load(os.path.join(path, folder, "spectra.npz"))
+        data_loc = np.load(os.path.join(path, folder, "spectra_total.npz"))
         data.append(data_loc["N_total"])
 
     err_msg = "Calculated results do not agree with analytics"

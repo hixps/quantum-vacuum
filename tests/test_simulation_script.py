@@ -59,7 +59,7 @@ def test_compare_with_analytics():
     path = "data/test/test_compare_with_analytics"
     run_test_simulation(path, ini_data)
 
-    data = np.load(os.path.join(path, "spectra.npz"))
+    data = np.load(os.path.join(path, "spectra_total.npz"))
     N_signal_num = data["N_total"]
 
     fields = list(ini_data["fields"].values())
@@ -105,7 +105,7 @@ def test_discernible():
     path = "data/test/test_discernible"
     run_test_simulation(path, ini_data)
 
-    data = np.load(os.path.join(path, "spectra.npz"))
+    data = np.load(os.path.join(path, "spectra_total.npz"))
     N_disc = data["N_disc"]
     N_disc_expected = 2.5
     err_msg = "Calculated discernible signal differs from expected by more than 20%"
@@ -131,7 +131,7 @@ def test_channels():
         path = f"data/test/test_channels_{idx[0]}_{idx[1]}"
         run_test_simulation(path, ini_data)
 
-        data_file = os.path.join(path, "spectra.npz")
+        data_file = os.path.join(path, "spectra_total.npz")
         data = np.load(data_file)
 
         N_signal_num = data["N_total"]

@@ -4,6 +4,7 @@
 */*.npz
 /*.npy
 imgs-sims/*
+imgs/*
 data/*
 experiments/*
 wisdom/*
