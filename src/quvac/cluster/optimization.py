@@ -11,7 +11,6 @@ Usage:
 
     optimization.py -i <input>.yaml -o <output_dir>
 """
-import argparse
 import os
 import time
 from pathlib import Path
@@ -23,7 +22,7 @@ from submitit import AutoExecutor, DebugJob, LocalJob
 
 from quvac.cluster.config import DEFAULT_SUBMITIT_PARAMS
 from quvac.postprocess import signal_in_detector, integrate_spherical
-from quvac.simulation import quvac_simulation
+from quvac.simulation import quvac_simulation, parse_args
 from quvac.utils import read_yaml, write_yaml
 
 
@@ -280,29 +279,6 @@ def run_optimization(ax_client, executor, n_trials, max_parallel_jobs, experimen
             time.sleep(1)
 
 
-def _parse_args():
-    """
-    Parse command-line arguments.
-
-    Returns
-    -------
-    argparse.Namespace
-        Parsed command-line arguments.
-    """
-    description = "Perform optimization of quvac simulations"
-    argparser = argparse.ArgumentParser(description=description)
-    argparser.add_argument(
-        "--input", "-i", default=None, help="Input yaml file with field and grid params"
-    )
-    argparser.add_argument(
-        "--output", "-o", default=None, help="Path to save simulation data to"
-    )
-    argparser.add_argument(
-        "--wisdom", default="wisdom/fftw-wisdom", help="File to save pyfftw-wisdom"
-    )
-    return argparser.parse_args()
-
-
 def cluster_optimization(ini_file, save_path=None, wisdom_file=None):
     """
     Launch optimization of quvac simulation for a given initial configuration file.
@@ -416,5 +392,5 @@ def gather_trials_data(ax_client, metric_names=["N_total", "N_disc"]):
 
 
 if __name__ == "__main__":
-    args = _parse_args()
+    args = parse_args(description="Perform optimization of quvac simulations")
     cluster_optimization(args.input, args.output)
