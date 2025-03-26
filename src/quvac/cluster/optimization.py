@@ -121,7 +121,7 @@ def update_energies(ini_data, energy_params):
     fields, opt_fields = [energy_fields[key] for key
                           in "fields optimized_fields".split()]
     err_msg = ("While optimizing energy distribution, it is required to have "
-               "exactly one more fields than free parameters")
+               "exactly one more field than free parameters")
     assert len(fields) == len(opt_fields)+1, err_msg
 
     optimization_params = ini_data["optimization"]
@@ -167,7 +167,7 @@ def collect_metrics(data, obj_params, metric_names=["N_total"]):
     if N_disc is not None:
         metrics["N_disc"] = (float(N_disc), 0.0)
 
-    if "detector" in obj_params:
+    if "detectors" in obj_params:
         N_detector = objective_signal_in_detector(data, obj_params)
         metrics["N_detector"] = (float(N_detector), 0.0)
 
