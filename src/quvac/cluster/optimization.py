@@ -408,20 +408,21 @@ def run_optimization(ax_client, executor, n_trials, max_parallel_jobs, experimen
                 max_trials=min(max_parallel_jobs - len(jobs), n_trials - submitted_jobs)
             )
             # Check that sampled trials satisfy the requirements
-            continue_optimization, last_samples, fail_count = check_sampled_trials(trial_index_to_param,
-                                                                                   last_samples,
-                                                                                   fail_count)
-            print(last_samples)
+            if trial_index_to_param:
+                continue_optimization, last_samples, fail_count = check_sampled_trials(trial_index_to_param,
+                                                                                    last_samples,
+                                                                                    fail_count)
+                print(last_samples)
 
-            if continue_optimization:
-                for trial_idx, params in trial_index_to_param.items():
-                    params["trial_idx"] = trial_idx
-                    job = executor.submit(quvac_evaluation, params, metric_names)
-                    submitted_jobs += 1
-                    jobs.append((job, trial_idx))
-                    time.sleep(1)
-            else:
-                warnings.warn("Terminating optimization... Finishing last trials...")
+                if continue_optimization:
+                    for trial_idx, params in trial_index_to_param.items():
+                        params["trial_idx"] = trial_idx
+                        job = executor.submit(quvac_evaluation, params, metric_names)
+                        submitted_jobs += 1
+                        jobs.append((job, trial_idx))
+                        time.sleep(1)
+                else:
+                    warnings.warn("Terminating optimization... Finishing last trials...")
                 
 
 def setup_generation_strategy(num_random_trials=6):
