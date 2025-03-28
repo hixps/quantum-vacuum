@@ -11,20 +11,22 @@ Usage:
 
     optimization.py -i <input>.yaml -o <output_dir>
 """
-import argparse
 import os
 import time
+import warnings
 from pathlib import Path
 from copy import deepcopy
 
 import numpy as np
 from ax.service.ax_client import AxClient, ObjectiveProperties
+from ax.modelbridge.generation_strategy import GenerationStep, GenerationStrategy
+from ax.modelbridge.registry import Models
 from submitit import AutoExecutor, DebugJob, LocalJob
 
 from quvac.cluster.config import DEFAULT_SUBMITIT_PARAMS
 from quvac.postprocess import signal_in_detector, integrate_spherical
-from quvac.simulation import quvac_simulation
-from quvac.utils import read_yaml, write_yaml
+from quvac.simulation import quvac_simulation, parse_args
+from quvac.utils import read_yaml, write_yaml, round_to_n
 
 
 def prepare_params_for_ax(params, ini_file):
@@ -83,11 +85,15 @@ def objective_signal_in_detector(data, obj_params):
     float
         The signal detected within the specified detector region.
     """
-    detector = obj_params["detector"]
+    detectors = obj_params["detectors"]
+    detectors = [detectors] if isinstance(detectors, dict) else detectors
     k, theta, phi, N_sph = [data[key] for key in "k theta phi N_sph".split()]
     N_angular = integrate_spherical(N_sph, (k,theta,phi), axs_integrate=['k'])
-    N_detector = signal_in_detector(N_angular, theta, phi, detector,
-                                    align_to_max=False)
+
+    N_detector = 0
+    for detector in detectors:
+        N_detector += signal_in_detector(N_angular, theta, phi, detector,
+                                         align_to_max=False)
     return N_detector
 
 
@@ -118,7 +124,7 @@ def update_energies(ini_data, energy_params):
     fields, opt_fields = [energy_fields[key] for key
                           in "fields optimized_fields".split()]
     err_msg = ("While optimizing energy distribution, it is required to have "
-               "exactly one more fields than free parameters")
+               "exactly one more field than free parameters")
     assert len(fields) == len(opt_fields)+1, err_msg
 
     optimization_params = ini_data["optimization"]
@@ -164,7 +170,7 @@ def collect_metrics(data, obj_params, metric_names=["N_total"]):
     if N_disc is not None:
         metrics["N_disc"] = (float(N_disc), 0.0)
 
-    if "detector" in obj_params:
+    if "detectors" in obj_params:
         N_detector = objective_signal_in_detector(data, obj_params)
         metrics["N_detector"] = (float(N_detector), 0.0)
 
@@ -214,7 +220,7 @@ def quvac_evaluation(params, metric_names=["N_total"]):
             energy_params[param_key] = param
 
     # treat separately energy distribution parameters
-    if energy_params:        
+    if energy_params:     
         ini_data = update_energies(ini_data, energy_params)
 
     # Save ini file
@@ -229,6 +235,136 @@ def quvac_evaluation(params, metric_names=["N_total"]):
     data = np.load(os.path.join(save_path, "spectra_total.npz"))
     metrics = collect_metrics(data, obj_params, metric_names)
     return metrics
+
+
+def check_energy_constraint(trial_index_to_param):
+    """
+    Check if the total energy budget constraint is satisfied.
+
+    Parameters
+    ----------
+    trial_index_to_param : dict
+        Dictionary mapping trial indices to parameter dictionaries. Each parameter dictionary
+        contains the energy distribution among fields.
+
+    Returns
+    -------
+    bool
+        True if the total energy budget constraint is satisfied for all trials, False otherwise.
+
+    Raises
+    ------
+    Warning
+        If the total energy budget constraint is violated for any trial.
+    """
+    energy_ok = True
+    for trial_idx, params in trial_index_to_param.items():
+        energies = []
+        for param_key, param in params.items():
+            if param_key != "ini_default":
+                category, key = param_key.split(":")
+                if key == "W":
+                    energies.append(param)
+        
+        W_total = np.sum(energies)
+        eps = 1.0 - W_total
+        if eps < 0 and not np.isclose(abs(eps), 0.0, atol=1e-5):
+            warnings.warn("Fixed total energy budget constraint is violated! "
+                          "Probably, optimization fails to find new prospective points and"
+                          "is stuck in local minima.")
+            energy_ok = False
+            break
+    return energy_ok
+
+
+def check_repeated_samples(trial_index_to_param, last_samples, fail_count, patience=3):
+    """
+    Check for repeated samples in the optimization process.
+
+    Parameters
+    ----------
+    trial_index_to_param : dict
+        Dictionary mapping trial indices to parameter dictionaries.
+    last_samples : list of tuple
+        List of parameter tuples from the most recent trials.
+    fail_count : int
+        Counter for the number of consecutive repeated samples.
+    patience : int, optional
+        Maximum number of consecutive repeated samples allowed before stopping. Default is 3.
+
+    Returns
+    -------
+    tuple
+        A tuple containing:
+        - continue_sampling (bool): Whether to continue sampling new trials.
+        - last_samples (list of tuple): Updated list of parameter tuples.
+        - fail_count (int): Updated counter for repeated samples.
+
+    Notes
+    -----
+    If the number of repeated samples exceeds the `patience` value, a warning is issued,
+    and sampling is stopped.
+    """
+    continue_sampling = True
+    trials = deepcopy(trial_index_to_param)
+    for trial_idx, params in trials.items():
+        params.pop("ini_default")
+        # round-up ints and floats for comparison
+        params_list = []
+        for k,v in tuple(sorted(params.items())):
+            if (isinstance(v, int) or isinstance(v, float)) and not np.isclose(v, 0.0):
+                # we use 5 significant digits
+                v = round_to_n(v,5)
+            params_list.append((k,v))
+        params_tuple = tuple(params_list)
+
+        if last_samples and params_tuple == last_samples[-1]:
+            fail_count += 1
+            warnings.warn(f"Trial {len(last_samples)-1} is identical to previous: {params}. Fail count: {fail_count}")
+        else:
+            fail_count = 0
+        
+        last_samples.append(params_tuple)
+
+        if fail_count >= patience:
+            warnings.warn(f"Number of repeated samples exceeded patience ({patience} tries)!")
+            continue_sampling = False
+    return continue_sampling, fail_count
+
+
+def check_sampled_trials(trial_index_to_param, last_samples, fail_count):
+    """
+    Check if the sampled trials are valid.
+
+    Parameters
+    ----------
+    trial_index_to_param : dict
+        Dictionary mapping trial indices to parameter dictionaries.
+    last_samples : list of tuple
+        List of parameter tuples from the most recent trials.
+    fail_count : int
+        Counter for the number of consecutive repeated samples.
+
+    Returns
+    -------
+    tuple
+        A tuple containing:
+        - continue_optimization (bool): Whether to continue the optimization process.
+        - last_samples (list of tuple): Updated list of parameter tuples.
+        - fail_count (int): Updated counter for repeated samples.
+
+    Notes
+    -----
+    This function checks two conditions:
+    1. Whether the total energy budget constraint is satisfied.
+    2. Whether there are repeated samples in the optimization process.
+    If either condition fails, the optimization process is terminated.
+    """
+    energy_ok = check_energy_constraint(trial_index_to_param)
+    continue_sampling, fail_count = check_repeated_samples(trial_index_to_param, last_samples, fail_count)
+
+    continue_optimization = energy_ok and continue_sampling
+    return continue_optimization, fail_count
 
 
 def run_optimization(ax_client, executor, n_trials, max_parallel_jobs, experiment_file,
@@ -257,8 +393,12 @@ def run_optimization(ax_client, executor, n_trials, max_parallel_jobs, experimen
     """
     jobs = []
     submitted_jobs = 0
+    # variables for early optimization stopping
+    continue_optimization = True
+    last_samples = []
+    fail_count = 0
     # Run until all the jobs have finished and our budget is used up.
-    while submitted_jobs < n_trials or jobs:
+    while (continue_optimization and submitted_jobs < n_trials) or jobs:
         for job, trial_idx in jobs:
             # Poll if any jobs completed
             # Local and debug jobs don't run until .result() is called.
@@ -268,39 +408,50 @@ def run_optimization(ax_client, executor, n_trials, max_parallel_jobs, experimen
                 jobs.remove((job, trial_idx))
                 ax_client.save_to_json_file(experiment_file)
 
-        # Schedule new jobs if there is availablity
-        trial_index_to_param, _ = ax_client.get_next_trials(
-            max_trials=min(max_parallel_jobs - len(jobs), n_trials - submitted_jobs)
-        )
-        for trial_idx, params in trial_index_to_param.items():
-            params["trial_idx"] = trial_idx
-            job = executor.submit(quvac_evaluation, params, metric_names)
-            submitted_jobs += 1
-            jobs.append((job, trial_idx))
-            time.sleep(1)
+        # sample new points if optimization is not terminated
+        if continue_optimization:
+            # Schedule new jobs if there is availablity
+            trial_index_to_param, _ = ax_client.get_next_trials(
+                max_trials=min(max_parallel_jobs - len(jobs), n_trials - submitted_jobs)
+            )
+            # Check that sampled trials satisfy the requirements
+            if trial_index_to_param:
+                continue_optimization, fail_count = check_sampled_trials(trial_index_to_param,
+                                                                         last_samples,
+                                                                         fail_count)
 
+                if continue_optimization:
+                    for trial_idx, params in trial_index_to_param.items():
+                        params["trial_idx"] = trial_idx
+                        job = executor.submit(quvac_evaluation, params, metric_names)
+                        submitted_jobs += 1
+                        jobs.append((job, trial_idx))
+                        time.sleep(1)
+                else:
+                    warnings.warn("Terminating optimization... Finishing last trials...")
+                
 
-def _parse_args():
+def setup_generation_strategy(num_random_trials=6):
     """
-    Parse command-line arguments.
+    Setup custom generation strategy.
+
+    Parameters
+    ----------
+    num_random_trials : int, optional
+        Number of random trials to perform before starting Bayesian optimization. Default is 6.
 
     Returns
     -------
-    argparse.Namespace
-        Parsed command-line arguments.
+    ax.modelbridge.generation_strategy.GenerationStrategy
+        The configured generation strategy.
     """
-    description = "Perform optimization of quvac simulations"
-    argparser = argparse.ArgumentParser(description=description)
-    argparser.add_argument(
-        "--input", "-i", default=None, help="Input yaml file with field and grid params"
+    gs = GenerationStrategy(
+        steps=[
+            GenerationStep(model=Models.SOBOL, num_trials=num_random_trials),
+            GenerationStep(model=Models.GPEI, num_trials=-1),
+        ]
     )
-    argparser.add_argument(
-        "--output", "-o", default=None, help="Path to save simulation data to"
-    )
-    argparser.add_argument(
-        "--wisdom", default="wisdom/fftw-wisdom", help="File to save pyfftw-wisdom"
-    )
-    return argparser.parse_args()
+    return gs
 
 
 def cluster_optimization(ini_file, save_path=None, wisdom_file=None):
@@ -344,8 +495,13 @@ def cluster_optimization(ini_file, save_path=None, wisdom_file=None):
     # Prepare parameters for optimization in ax style
     params_for_ax = prepare_params_for_ax(optimization_params["parameters"], ini_file)
 
+    # custom generation strategy
+    gs_params = optimization_params.get("gs_params", {})
+    num_random_trials = gs_params.get("num_random_trials", 6)
+    gs = setup_generation_strategy(num_random_trials=num_random_trials)
+
     # Set up optimization client
-    ax_client = AxClient()
+    ax_client = AxClient(generation_strategy=gs)
     objectives = optimization_params["objectives"]
     track_metrics = optimization_params.get("track_metrics", [])
     # collect metric names to keep track of
@@ -403,7 +559,8 @@ def gather_trials_data(ax_client, metric_names=["N_total", "N_disc"]):
     """
     metrics = ax_client.experiment.fetch_data().df
     trials = ax_client.experiment.trials
-    trials_params = {key: trial.arm.parameters for key, trial in trials.items()}
+    trials_params = {key: trial.arm.parameters for key, trial in trials.items()
+                     if trial.completed_successfully}
     for key in trials_params:
         for metric_name in metric_names:
             condition = (metrics["metric_name"] == metric_name) & (
@@ -416,5 +573,5 @@ def gather_trials_data(ax_client, metric_names=["N_total", "N_disc"]):
 
 
 if __name__ == "__main__":
-    args = _parse_args()
+    args = parse_args(description="Perform optimization of quvac simulations")
     cluster_optimization(args.input, args.output)

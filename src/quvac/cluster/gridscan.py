@@ -11,7 +11,6 @@ Usage:
 
     gridscan.py -i <input>.yaml -o <output_dir>
 """
-import argparse
 import itertools
 import os
 from copy import deepcopy
@@ -21,7 +20,7 @@ import numpy as np
 import submitit
 
 from quvac.cluster.config import DEFAULT_SUBMITIT_PARAMS
-from quvac.simulation import quvac_simulation
+from quvac.simulation import quvac_simulation, parse_args
 from quvac.utils import read_yaml, write_yaml
 
 
@@ -152,29 +151,6 @@ def create_ini_files_for_gridscan(ini_default, param_names, param_grids, save_pa
     return ini_files
 
 
-def _parse_args():
-    """
-    Parse command-line arguments.
-
-    Returns
-    -------
-    argparse.Namespace
-        Parsed command-line arguments.
-    """
-    description = "Perform gridscan of quvac simulations"
-    argparser = argparse.ArgumentParser(description=description)
-    argparser.add_argument(
-        "--input", "-i", default=None, help="Input yaml file with field and grid params"
-    )
-    argparser.add_argument(
-        "--output", "-o", default=None, help="Path to save simulation data to"
-    )
-    argparser.add_argument(
-        "--wisdom", default="wisdom/fftw-wisdom", help="File to save pyfftw-wisdom"
-    )
-    return argparser.parse_args()
-
-
 def cluster_gridscan(ini_file, save_path=None, wisdom_file=None):
     """
     Launch a grid scan of quvac simulations for a given default `ini.yml` file.
@@ -244,5 +220,5 @@ def cluster_gridscan(ini_file, save_path=None, wisdom_file=None):
 
 
 if __name__ == "__main__":
-    args = _parse_args()
+    args = parse_args(description="Perform gridscan of quvac simulations")
     cluster_gridscan(args.input, args.output)

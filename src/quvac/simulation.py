@@ -34,7 +34,7 @@ from quvac.utils import (load_wisdom, read_yaml, save_wisdom,
 _logger = logging.getLogger("simulation")
 
 
-def _parse_args():
+def parse_args(description="Calculate quantum vacuum signal for given external fields."):
     """
     Parse command-line arguments.
 
@@ -43,7 +43,6 @@ def _parse_args():
     argparse.Namespace
         Parsed command-line arguments.
     """
-    description = "Calculate quantum vacuum signal for given external fields."
     argparser = argparse.ArgumentParser(description=description)
     argparser.add_argument(
         "--input", "-i", default=None, help="Input yaml file with field and grid params"
@@ -393,5 +392,5 @@ def quvac_simulation(ini_file, save_path=None, wisdom_file="wisdom/fftw-wisdom")
 
 
 if __name__ == "__main__":
-    args = _parse_args()
+    args = parse_args()
     quvac_simulation(args.input, args.output, args.wisdom)

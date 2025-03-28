@@ -11,7 +11,6 @@ Usage:
     python simulation_parallel.py -i <input>.yaml -o <output_dir> 
     --wisdom <wisdom_file>
 """
-import argparse
 import logging
 import os
 import time
@@ -25,7 +24,7 @@ from quvac.config import DEFAULT_SUBMITIT_PARAMS
 from quvac.grid import setup_grids
 from quvac.log import (get_parallel_performance_stats,
                        simulation_end_str, simulation_start_str)
-from quvac.simulation import get_dirs, quvac_simulation, postprocess_simulation
+from quvac.simulation import get_dirs, quvac_simulation, parse_args, postprocess_simulation
 from quvac.utils import read_yaml, write_yaml, get_maxrss
 
 _logger = logging.getLogger("simulation")
@@ -109,29 +108,6 @@ def collect_results(ini_files, amplitudes_file):
         S2 += data["S2"]
     amplitude_total = {"x": x, "y": y, "z": z, "S1": S1, "S2": S2}
     np.savez(amplitudes_file, **amplitude_total)
-
-
-def _parse_args():
-    """
-    Parse command-line arguments.
-
-    Returns
-    -------
-    argparse.Namespace
-        Parsed command-line arguments.
-    """
-    description = "Calculate quantum vacuum signal for given external fields"
-    argparser = argparse.ArgumentParser(description=description)
-    argparser.add_argument(
-        "--input", "-i", default=None, help="Input yaml file with field and grid params"
-    )
-    argparser.add_argument(
-        "--output", "-o", default=None, help="Path to save simulation data to"
-    )
-    argparser.add_argument(
-        "--wisdom", default="wisdom/fftw-wisdom", help="File to save pyfftw-wisdom"
-    )
-    return argparser.parse_args()
 
 
 def quvac_simulation_parallel(
@@ -250,5 +226,5 @@ def quvac_simulation_parallel(
 
 
 if __name__ == "__main__":
-    args = _parse_args()
+    args = parse_args()
     quvac_simulation_parallel(args.input, args.output, args.wisdom)
