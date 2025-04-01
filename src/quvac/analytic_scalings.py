@@ -112,8 +112,8 @@ def _onaxis_function(x, r, k0=20):
     """
     def integrand(k):
         s = 0
-        for l in [-1, 1]:
-            s += np.exp(2*l*r*x*k) * erfc(l*r*k + x)
+        for n in [-1, 1]:
+            s += np.exp(2*n*r*x*k) * erfc(n*r*k + x)
         s = np.abs(s)**2
         return np.exp(-k**2) * s
         

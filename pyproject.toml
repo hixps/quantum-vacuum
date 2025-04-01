@@ -52,3 +52,8 @@ Repository = "https://github.com/maxbalrog/quvac"
 
 [tool.uv]
 default-groups = "all"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.11.2",
+]
