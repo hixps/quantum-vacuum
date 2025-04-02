@@ -17,12 +17,9 @@ from pathlib import Path
 import time
 import warnings
 
-from ax.modelbridge.generation_strategy import (  # type: ignore
-    GenerationStep,
-    GenerationStrategy,
-)
-from ax.modelbridge.registry import Models  # type: ignore
-from ax.service.ax_client import AxClient, ObjectiveProperties  # type: ignore
+from ax.modelbridge.generation_strategy import GenerationStep, GenerationStrategy
+from ax.modelbridge.registry import Models
+from ax.service.ax_client import AxClient, ObjectiveProperties
 import numpy as np
 from submitit import AutoExecutor, DebugJob, LocalJob
 
