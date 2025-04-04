@@ -145,9 +145,9 @@ def plot_mollweide(fig, ax, phi, theta, data, cmap='coolwarm', norm=None):
     ax.set_xticks([-2, -1, 0, 1, 2])
     ax.set_yticks([-1.5, -1, -0.5, 0, 0.5, 1, 1.5])
     xtick_labels = np.linspace(60, 360, 5, endpoint=False, dtype=int)
-    ax.xaxis.set_ticklabels(f'${num}^{{\circ}}$' for num in xtick_labels)
+    ax.xaxis.set_ticklabels(f'${num}^{{\\circ}}$' for num in xtick_labels)
     ytick_labels = np.linspace(0, 180, 7, endpoint=True, dtype=int)[::-1]
-    ax.yaxis.set_ticklabels(f'${num}^{{\circ}}$' for num in ytick_labels)
+    ax.yaxis.set_ticklabels(f'${num}^{{\\circ}}$' for num in ytick_labels)
     for item in ax.xaxis.get_ticklabels() + ax.yaxis.get_ticklabels():
         item.set_fontsize(18)
     ax.grid()
