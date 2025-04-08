@@ -33,12 +33,12 @@ fields:
     w0: 8.0e-07
 grid:
   collision_geometry: z
-  longitudinal_factor: 6
+  longitudinal_factor: 5
   mode: dynamic
   spatial_resolution: 1
   time_factor: 2
   time_resolution: 1
-  transverse_factor: 10
+  transverse_factor: 8
 integrator:
   type: vacuum_emission
 performance:
