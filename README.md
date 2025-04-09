@@ -1,5 +1,8 @@
 # quvac
 
+![Tests](https://github.com/maxbalrog/quantum-vacuum/actions/workflows/tests.yml/badge.svg)
+![Coverage](https://github.com/maxbalrog/quantum-vacuum/actions/workflows/coverage.yml/badge.svg)
+
 <img src="images/logo.jpg" alt="Alt Text" width="250" height="230">
 
 Quvac (from quantum vacuum, pronounced as qu-ack 🐸) allows to calculate quantum vacuum signals produced during light-by-light scattering.
@@ -33,6 +36,6 @@ If you noticed a bug or have a feature request, open a new [issue](https://githu
 
 ## References
 
-[1] - F. Karbstein, and R. Shaisultanov. "Stimulated photon emission from the vacuum." PRD 91.11 (2015): 113002.
+[1] - F. Karbstein, and R. Shaisultanov. "Stimulated photon emission from the vacuum." PRD 91.11 (2015): 113002 [[link]](https://arxiv.org/abs/1412.6050).
 
-[2] - A. Blinne, et al. "All-optical signatures of quantum vacuum nonlinearities in generic laser fields." PRD 99.1 (2019): 016006.
+[2] - A. Blinne, et al. "All-optical signatures of quantum vacuum nonlinearities in generic laser fields." PRD 99.1 (2019): 016006 [[link]](https://arxiv.org/abs/1811.08895).

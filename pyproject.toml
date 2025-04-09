@@ -13,7 +13,6 @@ dependencies = [
   "tqdm",
   "submitit",
   "pyyaml",
-  "pytest",
 ]
 requires-python = ">=3.12"
 authors = [
@@ -32,10 +31,10 @@ classifiers = [
 ]
 
 [project.scripts]
-quvac-simulation = "quvac:main_simulation"
-quvac-simulation-parallel = "quvac:main_simulation_parallel"
-quvac-gridscan = "quvac:main_gridscan"
-quvac-optimization = "quvac:main_optimization"
+quvac-simulation = "quvac.simulation:main_simulation"
+quvac-simulation-parallel = "quvac.simulation_parallel:main_simulation_parallel"
+quvac-gridscan = "quvac.cluster.gridscan:main_gridscan"
+quvac-optimization = "quvac.cluster.optimization:main_optimization"
 
 [project.optional-dependencies]
 optimization = [
@@ -44,6 +43,10 @@ optimization = [
 plot = [
     "matplotlib>=3.10.1",
 ]
+test = [
+    "pytest>=8.3.5",
+    "pytest-cov>=6.1.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/maxbalrog/quvac"
@@ -51,6 +54,25 @@ Repository = "https://github.com/maxbalrog/quvac"
 
 [tool.uv]
 default-groups = "all"
+
+[tool.pytest.ini_options]
+markers = [
+    "slow: marks tests as slow (deselect with `-m 'not slow'`)",
+    "benchmark: marks tests as becnhmarks",
+]
+addopts = "-m 'not slow' -m 'not benchmark'"
+python_files = [
+    "bench_*.py",
+    "test_*.py",
+]
+
+# exclude certain scripts from coverage report
+[tool.coverage.run]
+omit = [
+    "*/cluster/*",
+    "src/quvac/analytic_scalings.py",
+    "src/quvac/plotting.py",
+]
 
 [tool.ruff]
 extend-exclude = ["*.ipynb"]
@@ -75,4 +97,8 @@ split-on-trailing-comma = false
 [dependency-groups]
 dev = [
     "ruff>=0.11.2",
+]
+test = [
+    "pytest>=8.3.5",
+    "pytest-cov>=6.1.0",
 ]

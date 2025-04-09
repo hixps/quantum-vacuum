@@ -461,7 +461,8 @@ class VacuumEmissionAnalyzer:
         Ey = ne.evaluate("e1y*a1 + e2y*a2", global_dict=self.__dict__)
         Ez = ne.evaluate("e1z*a1 + e2z*a2", global_dict=self.__dict__)
         E = ne.evaluate("sqrt(Ex**2 + Ey**2 + Ez**2)")
-        E_inv = np.nan_to_num(1. / E)
+        E_inv = ne.evaluate("where((Ex==0) & (Ey==0) & (Ez==0), 0, 1/E)")
+        # E_inv = np.nan_to_num(1. / E)
         efx, efy, efz = Ex * E_inv, Ey * E_inv, Ez * E_inv
         return (efx, efy, efz)
 
@@ -490,10 +491,9 @@ class VacuumEmissionAnalyzer:
         elif perp_type == "local axis":
             efx, efy, efz = self.get_polarization_from_field()
             self.efx, self.efy, self.efz = efx, efy, efz
-            kx, ky, kz = [k / self.kabs for k in self.kmeshgrid]
-            kx[0, 0, 0] = 0.0
-            ky[0, 0, 0] = 0.0
-            kz[0, 0, 0] = 0.0
+            kx, ky, kz = [ne.evaluate("where(kabs==0, 0, k/kabs)", 
+                                      global_dict={"kabs": self.kabs, "k": k})
+                          for k in self.kmeshgrid]
             self.epx = ne.evaluate("ky*efz - kz*efy")
             self.epy = ne.evaluate("kz*efx - kx*efz")
             self.epz = ne.evaluate("kx*efy - ky*efx")
@@ -746,10 +746,10 @@ class VacuumEmissionAnalyzer:
             bgr_field = MaxwellMultiple(self.fields_params, self.grid_xyz)
             a1_bgr, a2_bgr = bgr_field.a1, bgr_field.a2
             self.a1_mix, self.a2_mix = self.a1_sig + a1_bgr, self.a2_sig + a2_bgr
+            self.a1_mix, self.a2_mix = [np.fft.fftshift(a) for a 
+                                        in (self.a1_mix,self.a2_mix)]
         self.a1_sig, self.a2_sig = [np.fft.fftshift(a) for a 
                                     in (self.a1_sig,self.a2_sig)]
-        self.a1_mix, self.a2_mix = [np.fft.fftshift(a) for a 
-                                    in (self.a1_mix,self.a2_mix)]
 
     def write_data(self, keys):
         """
@@ -838,7 +838,6 @@ class VacuumEmissionAnalyzer:
         angle_keys = "theta phi beta".split()
         angles = [self.fields_params[self.perp_field_idx][key] for key in angle_keys]
         self.get_perp_signal(angles, perp_type=perp_type, stokes=stokes)
-        # keys = "kx ky kz Np_xyz Np_total epx epy epz".split()
         keys = "kx ky kz epx epy epz efx efy efz".split()
 
         if not stokes:
