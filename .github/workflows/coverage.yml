@@ -42,30 +42,6 @@ jobs:
           echo $SCORE
           echo "SCORE_STR=$SCORE_STR" >> $GITHUB_ENV
           echo "SCORE=$SCORE" >> $GITHUB_ENV
-          
-
-    #   - name: Pytest coverage comment
-    #     id: coverageComment
-    #     uses: MishaKav/pytest-coverage-comment@main
-    #     with:
-    #       pytest-coverage-path: ./pytest-coverage.txt
-    #       junitxml-path: ./pytest.xml
-      
-    #   - name: Check the output coverage
-    #     run: |
-    #       echo "Coverage Percentage - ${{ steps.coverageComment.outputs.coverage }}"
-    #       echo "Coverage Color - ${{ steps.coverageComment.outputs.color }}"
-    #       echo "Coverage Html - ${{ steps.coverageComment.outputs.coverageHtml }}"
-
-    #       echo "Coverage Warnings - ${{ steps.coverageComment.outputs.warnings }}"
-
-    #       echo "Coverage Errors - ${{ steps.coverageComment.outputs.errors }}"
-    #       echo "Coverage Failures - ${{ steps.coverageComment.outputs.failures }}"
-    #       echo "Coverage Skipped - ${{ steps.coverageComment.outputs.skipped }}"
-    #       echo "Coverage Tests - ${{ steps.coverageComment.outputs.tests }}"
-    #       echo "Coverage Time - ${{ steps.coverageComment.outputs.time }}"
-
-    #       echo "Not Success Test Info - ${{ steps.coverageComment.outputs.notSuccessTestInfo }}"
   
       - name: Create the Badge
         uses: schneegans/dynamic-badges-action@v1.7.0
@@ -73,8 +49,8 @@ jobs:
             auth: ${{ secrets.PYTEST_COVERAGE_COMMENT }}
             gistID: d6b0645fa035119a53bb6356d169c98b
             filename: quvac_coverage_badge.json
-            label: Coverage Report
-            message: is ${{ env.SCORE_STR }}
+            label: Coverage
+            message: ${{ env.SCORE_STR }}
             valColorRange: ${{ env.SCORE }}
             maxColorRange: 90
             minColorRange: 30
