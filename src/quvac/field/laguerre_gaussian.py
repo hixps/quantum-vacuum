@@ -63,7 +63,7 @@ class LaguerreGaussianAnalytic(ExplicitField):
     def __init__(self, field_params, grid):
         super().__init__(field_params, grid)
 
-        self.phase0 += pi / 2.0
+        self.phase0 += pi / 2.0 + pi
 
         if "E0" not in field_params:
             err_msg = ("Field params need to have either W (energy) or"
@@ -95,7 +95,7 @@ class LaguerreGaussianAnalytic(ExplicitField):
         self.E_expr = (f"B0 * w0/{self.w} * exp(-{self.r2}/{self.w}**2) * "
                        f"rw**l * lag_poly")
         self.phase_no_t = ne.evaluate(
-            (f"phase0 - k*{self.r2}*{self.R_inv}/2 + (2*p+l+1)*arctan(z/zR) - "
+            (f"phase0 - k*{self.r2}*{self.R_inv}/2 + (2*p+l+1)*arctan(z/zR) + "
              "l*arctan2(y,x)"),
             global_dict=self.__dict__,
         )
