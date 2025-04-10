@@ -78,7 +78,8 @@ class LaguerreGaussianAnalytic(ExplicitField):
         self.k = 2.0 * pi / self.lam
         self.omega = c * self.k
         self.zR = pi * self.w0**2 / self.lam
-        self.prefactor = np.sqrt(2*factorial(self.p)/factorial(self.p+self.l)/pi)
+        p, l_phi = self.p, self.l
+        self.prefactor = np.sqrt(2*factorial(p)/factorial(p+l_phi)/pi)
 
         # Rotate coordinate grid
         self.rotate_coordinates()
@@ -90,10 +91,9 @@ class LaguerreGaussianAnalytic(ExplicitField):
         self.R_inv = "(z/(z**2 + zR**2))"
         
         self.rw = ne.evaluate(f"({self.r}*sqrt(2)/{self.w})", global_dict=self.__dict__)
-        self.lag_poly = self.prefactor * genlaguerre(self.p, self.l)(self.rw**2)
+        self.lag_poly = self.rw**l_phi * genlaguerre(p, l_phi)(self.rw**2)
 
-        self.E_expr = (f"B0 * w0/{self.w} * exp(-{self.r2}/{self.w}**2) * "
-                       f"rw**l * lag_poly")
+        self.E_expr = (f"B0 * w0/{self.w} * exp(-{self.r2}/{self.w}**2) * lag_poly")
         self.phase_no_t = ne.evaluate(
             (f"phase0 - k*{self.r2}*{self.R_inv}/2 + (2*p+l+1)*arctan(z/zR) + "
              "l*arctan2(y,x)"),
