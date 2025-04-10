@@ -9,15 +9,18 @@ Various field profiles and interfaces to unite them.
 """
 from quvac.field.dipole import DipoleAnalytic
 from quvac.field.gaussian import GaussianAnalytic
+from quvac.field.laguerre_gaussian import LaguerreGaussianAnalytic
 from quvac.field.model import EBInhomogeneity
 
 ANALYTIC_FIELDS = {
     "dipole_analytic": DipoleAnalytic,
     "paraxial_gaussian_analytic": GaussianAnalytic,
+    "laguerre_gaussian_analytic": LaguerreGaussianAnalytic,
     "eb_inhomogeneity": EBInhomogeneity,
 }
 
 SPATIAL_MODEL_FIELDS = {
     "dipole_maxwell": DipoleAnalytic,
     "paraxial_gaussian_maxwell": GaussianAnalytic,
+    "laguerre_gaussian_maxwell": LaguerreGaussianAnalytic,
 }
