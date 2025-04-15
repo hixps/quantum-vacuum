@@ -70,6 +70,17 @@ def test_gaussian(order, mode):
     check_fields(E, B, mode=mode)
 
 
+@pytest.mark.parametrize("polarization", ["linear", "right-circular", "left-circular"])
+def test_circular_polarization(polarization):
+    gauss_params = get_default_gaussian_params("maxwell")
+    gauss_params["polarization"] = polarization
+    grid_params = get_default_grid_params()
+    grid, _ = setup_grids([gauss_params], grid_params)
+    field = GaussianAnalytic(gauss_params, grid)
+    E,B = field.calculate_field(t=0.)
+    check_fields(E, B)
+
+
 def get_default_grid(params):
     grid_params = get_default_grid_params()
     if params[0]["field_type"].startswith("dipole"):

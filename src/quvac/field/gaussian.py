@@ -51,6 +51,12 @@ class GaussianAnalytic(ExplicitField):
     All field parameters are in SI units.
 
     Higher-order paraxial Gaussian orders are from [1]_.
+
+    For circular polarization we abide by the following convention:
+        - `right-circular` correcponds to (ex + i*ey)
+        - `left-circular` to (ex - i*ey)
+    Difference in field amplitudes for linear and circular polarization should 
+    be automatically taken care of by energy correction.
     """
 
     def __init__(self, field_params, grid):
@@ -190,13 +196,16 @@ class GaussianAnalytic(ExplicitField):
             else:
                 self.Ex = self.By = 1j * Et.copy()
                 self.Ey = self.Ez = self.Bx = self.Bz = 0.0
-        elif self.polarization == "circular":
+        elif self.polarization in ["left-circular", "right-circular"]:
             if self.order > 0:
                 raise NotImplementedError("Higher paraxial orders for circular "
                                           "polarization are not supported")
             else:
                 self.Ex = self.By = 1j * Et.copy()
-                self.Ey = ne.evaluate("1j * Et * exp(-1j*pi/2)", global_dict={'pi': pi})
+                if self.polarization == "right-circular":
+                    self.Ey = 1j * 1j * Et.copy()
+                else:
+                    self.Ey = -1j * 1j * Et.copy()
                 self.Bx = -self.Ey
                 self.Ez = self.Bz = 0.0
         else:
