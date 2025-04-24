@@ -53,6 +53,8 @@ class PlaneWave(ExplicitField):
         self.x0, self.y0, self.z0 = getattr(self, "focus_x", [0,0,0])
         self.t0 = self.focus_t
         self.B0 = self.E0 / c
+        self.k = 2.0 * pi / self.lam
+        self.omega = c * self.k
         self.l = getattr(self, "l", 0)
 
         # Rotate coordinate grid
@@ -76,8 +78,6 @@ class PlaneWave(ExplicitField):
         """
         Calculates the electric and magnetic fields at a given time step.
         """
-        k = 2.0 * pi / self.lam # noqa: F841
-
         phase_expr = "omega*(t-t0) - k*z + phase0"
         if self.l:
             phase_expr += " + l*arctan2(y,x)"
