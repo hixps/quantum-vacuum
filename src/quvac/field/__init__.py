@@ -11,12 +11,14 @@ from quvac.field.dipole import DipoleAnalytic
 from quvac.field.gaussian import GaussianAnalytic
 from quvac.field.laguerre_gaussian import LaguerreGaussianAnalytic
 from quvac.field.model import EBInhomogeneity
+from quvac.field.planewave import PlaneWave
 
 ANALYTIC_FIELDS = {
     "dipole_analytic": DipoleAnalytic,
     "paraxial_gaussian_analytic": GaussianAnalytic,
     "laguerre_gaussian_analytic": LaguerreGaussianAnalytic,
     "eb_inhomogeneity": EBInhomogeneity,
+    "plane_wave": PlaneWave,
 }
 
 SPATIAL_MODEL_FIELDS = {
