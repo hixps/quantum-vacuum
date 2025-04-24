@@ -32,13 +32,23 @@ class PlaneWave(ExplicitField):
                 Amplitude (either E0 or W is required).
             - 'W' : float, optional
                 Energy (either E0 or W is required).
+            - 'l': int, optional
+                Azimuthal index of the Laguerre-Gaussian mode.
     grid : quvac.grid.GridXYZ
         Spatial and grid.
+
+    Notes
+    -----
+    It is possible to add OAM term to plane-wave: exp(-i*l*phi)
     """
     def __init__(self, field_params, grid):
         super().__init__(field_params, grid)
 
         self.B0 = self.E0 / c
+        self.l = getattr(self, "l", 0)
+
+        # Rotate coordinate grid
+        self.rotate_coordinates()
 
         # Set up correct field amplitude
         if "W" in field_params:
@@ -59,11 +69,14 @@ class PlaneWave(ExplicitField):
         Calculates the electric and magnetic fields at a given time step.
         """
         k = 2.0 * pi / self.lam # noqa: F841
-        self.psi_plane = ne.evaluate("(omega*(t-t0) - k*z + phase0)",
-                                      global_dict=self.__dict__)
+
+        phase_expr = "omega*(t-t0) - k*z + phase0"
+        if self.l:
+            phase_expr += " + l*arctan2(y,x)"
+        self.phase = ne.evaluate(phase_expr, global_dict=self.__dict__)
 
         Et = ne.evaluate(
-            "E0 * exp(-(2.*psi_plane/(omega*tau))**2) * exp(-1.j*psi_plane)",
+            "E0 * exp(-(2.*phase/(omega*tau))**2) * exp(-1.j*phase)",
             global_dict=self.__dict__,
         )
 
