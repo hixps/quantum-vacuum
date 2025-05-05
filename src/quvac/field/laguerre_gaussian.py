@@ -63,7 +63,7 @@ class LaguerreGaussianAnalytic(ExplicitField):
     def __init__(self, field_params, grid):
         super().__init__(field_params, grid)
 
-        self.phase0 += pi / 2.0 + pi
+        self.phase0 += pi
 
         if "E0" not in field_params:
             err_msg = ("Field params need to have either W (energy) or"
@@ -130,7 +130,7 @@ class LaguerreGaussianAnalytic(ExplicitField):
             global_dict=self.__dict__,
         )
 
-        self.Ex = self.By = 1j * Et.copy()
+        self.Ex = self.By = Et.copy()
         self.Ey = self.Ez = self.Bx = self.Bz = 0.0
 
         if mode == "real":
