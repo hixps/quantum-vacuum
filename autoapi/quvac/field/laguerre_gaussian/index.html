@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" /><link rel="next" title="quvac.field.maxwell" href="../maxwell/index.html" /><link rel="prev" title="quvac.field.gaussian" href="../gaussian/index.html" />
 
-    <!-- Generated with Sphinx 8.2.1 and Furo 2024.08.06 -->
+    <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
         <title>quvac.field.laguerre_gaussian - quvac 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=354aac6f" />
@@ -217,6 +217,7 @@
 <li class="toctree-l4 current current-page"><a class="current reference internal" href="#">quvac.field.laguerre_gaussian</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../maxwell/index.html">quvac.field.maxwell</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../model/index.html">quvac.field.model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../planewave/index.html">quvac.field.planewave</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../utils/index.html">quvac.field.utils</a></li>
 </ul>
 </li>
@@ -283,12 +284,10 @@
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="id1" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">1</a><span class="fn-bracket">]</span></span>
-<ol class="upperalpha simple" start="12">
-<li><p>Allen et al. “Orbital angular momentum of light and the transformation of</p></li>
-</ol>
+<p>L. Allen et al. “Orbital angular momentum of light and the transformation of
+Laguerre-Gaussian laser modes.” PRA 45.11 (1992): 8185.</p>
 </aside>
 </aside>
-<p>Laguerre-Gaussian laser modes.” PRA 45.11 (1992): 8185.</p>
 <section id="classes">
 <h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">¶</a></h2>
 <div class="table-wrapper autosummary longtable docutils container">
@@ -311,12 +310,13 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>field_params</strong> (<em>dict</em>) – <p>Dictionary containing the field parameters. Required keys are:
-- ‘focus_x’ : tuple of float</p>
-<blockquote>
-<div><p>Location of spatial focus (x, y, z).</p>
-</div></blockquote>
-<ul>
+<li><p><strong>field_params</strong> (<em>dict</em>) – <dl class="simple">
+<dt>Dictionary containing the field parameters. Required keys are:</dt><dd><ul>
+<li><dl class="simple">
+<dt>’focus_x’<span class="classifier">tuple of float</span></dt><dd><p>Location of spatial focus (x, y, z).</p>
+</dd>
+</dl>
+</li>
 <li><dl class="simple">
 <dt>’focus_t’<span class="classifier">float</span></dt><dd><p>Location of temporal focus.</p>
 </dd>
@@ -378,6 +378,8 @@
 </dl>
 </li>
 </ul>
+</dd>
+</dl>
 </p></li>
 <li><p><strong>grid</strong> (<a class="reference internal" href="../../grid/index.html#quvac.grid.GridXYZ" title="quvac.grid.GridXYZ"><em>quvac.grid.GridXYZ</em></a>) – Spatial and spectral grid.</p></li>
 </ul>

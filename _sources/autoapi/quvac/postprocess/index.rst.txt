@@ -149,15 +149,16 @@ Module Contents
    :type theta: numpy.ndarray
    :param phi: Array of azimuthal angles (in radians) corresponding to the spherical grid.
    :type phi: numpy.ndarray
-   :param detector: Dictionary specifying the detector region. Required keys are:
-                    - 'phi0' : float
-                        Central azimuthal angle of the detector (in degrees).
-                    - 'theta0' : float
-                        Central polar angle of the detector (in degrees).
-                    - 'dphi' : float
-                        Half-width of the azimuthal angle range (in degrees).
-                    - 'dtheta' : float
-                        Half-width of the polar angle range (in degrees).
+   :param detector:
+                    Dictionary specifying the detector region. Required keys are:
+                        - 'phi0' : float
+                            Central azimuthal angle of the detector (in degrees).
+                        - 'theta0' : float
+                            Central polar angle of the detector (in degrees).
+                        - 'dphi' : float
+                            Half-width of the azimuthal angle range (in degrees).
+                        - 'dtheta' : float
+                            Half-width of the polar angle range (in degrees).
    :type detector: dict
    :param align_to_max: Whether to align detector to the max spot in the detected region,
                         by default False.

@@ -1,16 +1,11 @@
-quvac.field.laguerre_gaussian
-=============================
+quvac.field.planewave
+=====================
 
-.. py:module:: quvac.field.laguerre_gaussian
+.. py:module:: quvac.field.planewave
 
 .. autoapi-nested-parse::
 
-   Analytic expression for Laguerre-Gaussian modes.
-
-   ----
-
-   .. [1] L. Allen et al. "Orbital angular momentum of light and the transformation of
-       Laguerre-Gaussian laser modes." PRA 45.11 (1992): 8185.
+   Analytic expression for plane wave.
 
 
 
@@ -19,25 +14,21 @@ Classes
 
 .. autoapisummary::
 
-   quvac.field.laguerre_gaussian.LaguerreGaussianAnalytic
+   quvac.field.planewave.PlaneWave
 
 
 Module Contents
 ---------------
 
-.. py:class:: LaguerreGaussianAnalytic(field_params, grid)
+.. py:class:: PlaneWave(field_params, grid)
 
    Bases: :py:obj:`quvac.field.abc.ExplicitField`
 
 
-   Analytic expression for Laguerre-Gaussian modes.
+   Analytic expression for paraxial Gaussian beam.
 
    :param field_params:
                         Dictionary containing the field parameters. Required keys are:
-                            - 'focus_x' : tuple of float
-                                Location of spatial focus (x, y, z).
-                            - 'focus_t' : float
-                                Location of temporal focus.
                             - 'theta' : float
                                 Polar angle of k-vector (in degrees).
                             - 'phi' : float
@@ -46,29 +37,23 @@ Module Contents
                                 Polarization angle (in degrees).
                             - 'lam' : float
                                 Wavelength of the pulse.
-                            - 'w0' : float
-                                Waist size.
                             - 'tau' : float
                                 Duration.
                             - 'phase0' : float
                                 Phase delay at focus.
-                            - 'p' : int
-                                Radial index of the Laguerre-Gaussian mode.
-                            - 'l' : int
-                                Azimuthal index of the Laguerre-Gaussian mode.
                             - 'E0' : float, optional
                                 Amplitude (either E0 or W is required).
                             - 'W' : float, optional
                                 Energy (either E0 or W is required).
+                            - 'l': int, optional
+                                Azimuthal index of the Laguerre-Gaussian mode.
    :type field_params: dict
-   :param grid: Spatial and spectral grid.
+   :param grid: Spatial and grid.
    :type grid: quvac.grid.GridXYZ
 
    .. rubric:: Notes
 
-   All field parameters are in SI units.
-
-   Analytic expression is from [1]_.
+   It is possible to add OAM term to plane-wave: exp(-i*l*phi)
 
 
    .. py:method:: check_energy()
