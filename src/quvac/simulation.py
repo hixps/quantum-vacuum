@@ -23,6 +23,7 @@ from quvac import config
 from quvac.field.external_field import ExternalField, ProbePumpField
 from quvac.grid import setup_grids
 from quvac.integrator.vacuum_emission import VacuumEmission
+from quvac.integrator.vacuum_emission_rust import VacuumEmissionRust
 from quvac.log import (
     get_grid_params,
     get_performance_stats,
@@ -196,6 +197,7 @@ def run_simulation(ini_config, fields_params, files, timings, memory):
     use_wisdom = perf_params.get("use_wisdom", True)
 
     perf_params = ini_config.get("performance", {})
+    use_rust = perf_params.get("use_rust", False)
 
     # Check if it's a test run to plan resources
     test_run = perf_params.get("test_run", False)
@@ -246,7 +248,12 @@ def run_simulation(ini_config, fields_params, files, timings, memory):
             f"    Pump  idx: {probe_pump['pump']}"
         )
     _logger.info(log_message)
-    vacem = VacuumEmission(field, grid_xyz, nthreads=pyfftw_threads, channels=channels)
+
+    if not channels and use_rust:
+        vacem = VacuumEmissionRust(field, grid_xyz, nthreads=pyfftw_threads)
+    else:
+        vacem = VacuumEmission(field, grid_xyz, nthreads=pyfftw_threads,
+                               channels=channels)
     timings['vacem_setup'] = time.perf_counter()
     timings['integral'] = vacem.calculate_amplitudes(grid_t, 
                                                      save_path=files['amplitudes'])

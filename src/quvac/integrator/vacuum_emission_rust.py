@@ -4,6 +4,7 @@ Calculation of vacuum emission integral in Rust (box diagram, F^4).
 
 import os
 from pathlib import Path
+import time
 
 import numpy as np
 
@@ -18,15 +19,17 @@ class VacuumEmissionRust:
         # Update local dict with variables from GridXYZ class
         self.__dict__.update(self.grid_xyz.__dict__)
 
-    def save_rust_input(self, path):
+    def save_rust_input(self):
+        field = self.field.fields[0]
         data = {
             "x": self.grid[0],
             "y": self.grid[1],
             "z": self.grid[2],
             "t": self.t_grid,
-            "a1": self.field.a1,
-            "a2": self.field.a2,
+            "a1": field.a1,
+            "a2": field.a2,
         }
+        path = os.path.dirname(self.save_path)
         self.rust_input = os.path.join(path, "rust", "rust_input.npz")
         Path(os.path.dirname(self.rust_input)).mkdir(parents=True, exist_ok=True)
         np.savez(self.rust_input, **data)
@@ -69,10 +72,14 @@ class VacuumEmissionRust:
         """
         self.t_grid = t_grid
         self.save_path = save_path
-        path = os.path.dirname(save_path)
 
-        self.save_rust_input(path)
-
+        time_integral_start = time.perf_counter()
+        
+        self.save_rust_input()
         self.launch_rust_calculation()
-
         self.read_rust_output()
+        
+        time_integral_end = time.perf_counter()
+
+        time_integral = time_integral_end - time_integral_start
+        return time_integral
