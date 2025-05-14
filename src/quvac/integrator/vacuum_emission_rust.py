@@ -9,6 +9,8 @@ import time
 import numpy as np
 from scipy.constants import c
 
+from quvac.config import RUST_TOML
+
 
 class VacuumEmissionRust:
     '''
@@ -35,7 +37,7 @@ class VacuumEmissionRust:
             "e1z": self.e1z,
             "e2x": self.e2x,
             "e2y": self.e2y,
-            "e2z": self.e2z,
+            "e2z": float(self.e2z),
             "dV": self.dV,
             "dVk": self.dVk,
             "c": c,
@@ -47,23 +49,11 @@ class VacuumEmissionRust:
         np.savez(self.rust_input, **data)
 
     def launch_rust_calculation(self):
-        # this is just a placeholder for now
-        data = np.load(self.rust_input)
-        print(list(data.keys()))
-        print("Rust input loaded!")
-        S1 = np.ones_like(data["a1"])
-        S2 = np.zeros_like(data["a1"])
+        rust_command = f"cargo run --manifest-path {RUST_TOML} -- -i {self.rust_input}"
+        os.system(rust_command)
 
-        data_to_save = {
-            "x": data["x"],
-            "y": data["y"],
-            "z": data["z"],
-            "S1": S1,
-            "S2": S2,
-        }
         self.rust_output = os.path.join(os.path.dirname(self.rust_input),
                                         "rust_output.npz")
-        np.savez(self.rust_output, **data_to_save)
 
     def read_rust_output(self):
         data = np.load(self.rust_output)
