@@ -7,6 +7,7 @@ from pathlib import Path
 import time
 
 import numpy as np
+from scipy.constants import c
 
 
 class VacuumEmissionRust:
@@ -28,6 +29,17 @@ class VacuumEmissionRust:
             "t": self.t_grid,
             "a1": field.a1,
             "a2": field.a2,
+            "kabs": self.kabs,
+            "e1x": self.e1x,
+            "e1y": self.e1y,
+            "e1z": self.e1z,
+            "e2x": self.e2x,
+            "e2y": self.e2y,
+            "e2z": self.e2z,
+            "dV": self.dV,
+            "dVk": self.dVk,
+            "c": c,
+            "t0": field.t0,
         }
         path = os.path.dirname(self.save_path)
         self.rust_input = os.path.join(path, "rust", "rust_input.npz")
