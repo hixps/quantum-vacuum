@@ -127,7 +127,7 @@ From here, fields at other time steps are given by
     \tilde{\vec B}(t, \vec k) &= e^{-i k t} i k [\vec e_2(\vec k) a_1(\vec k) - \vec e_1(\vec k) a_2(\vec k)].
     \end{align*}
 
-Fields at the spatial domain at timestep $t$ are obtained via inverse Fourier transform.
+Fields at the spatial domain at timestep :math:`t` are obtained via inverse Fourier transform.
 
 From these complex fields, electromagnetic fields that are used in the vacuum emission amplitude are given by their real part:
 :math:`\vec E(t, \vec x) \rightarrow Re\{E(t, \vec x)\}, \vec B(t, \vec x) \rightarrow Re\{B(t, \vec x)\}`.

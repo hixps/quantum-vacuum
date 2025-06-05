@@ -9,7 +9,7 @@ __doc_const_in_modules__ = [
 project = 'quvac'
 copyright = '2025, maxbalrog'
 author = 'maxbalrog'
-release = '0.1.0'
+release = '0.1.1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
