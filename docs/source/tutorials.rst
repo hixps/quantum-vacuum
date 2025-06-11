@@ -9,5 +9,7 @@ Welcome to the tutorials page!
 
 `3. Different postprocessing options <https://github.com/maxbalrog/quantum-vacuum/blob/main/tutorials/3.%20Postprocessing%20options.ipynb>`_.
 
+`4. Parallel simulation, gridscan and Bayesian optimization <https://github.com/maxbalrog/quantum-vacuum/blob/main/tutorials/4.%20Parallel%20simulation%2C%20gridscan%20and%20Bayesian%20optimization.ipynb>`_.
+
 `Add new field to quvac <https://github.com/maxbalrog/quantum-vacuum/blob/main/tutorials/Add%20new%20field%20to%20quvac.md>`_.
 
