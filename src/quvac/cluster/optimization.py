@@ -97,6 +97,36 @@ def objective_signal_in_detector(data, obj_params):
     return N_detector
 
 
+def objective_discernible_signal_in_detector(data, obj_params):
+    """
+    Calculate the discernible signal detected within a specified detector region.
+
+    Parameters
+    ----------
+    data : dict
+        Dictionary containing simulation results, including spherical grid data.
+    obj_params : dict
+        Dictionary containing detector parameters.
+
+    Returns
+    -------
+    float
+        The signal detected within the specified detector region.
+    """
+    detectors = obj_params["detectors"]
+    detectors = [detectors] if isinstance(detectors, dict) else detectors
+    k, theta, phi, N_sph, discernible = [
+        data[key] for key in "k theta phi N_sph discernible".split()
+    ]
+    N_angular = integrate_spherical(N_sph, (k,theta,phi), axs_integrate=['k'])
+
+    N_detector = 0
+    for detector in detectors:
+        N_detector += signal_in_detector(N_angular*discernible, theta, phi, detector,
+                                         align_to_max=False)
+    return N_detector
+
+
 def update_energies(ini_data, energy_params):
     """
     Update the energy distribution among fields for optimization.
@@ -174,6 +204,8 @@ def collect_metrics(data, obj_params, metric_names=("N_total")):
     if "detectors" in obj_params:
         N_detector = objective_signal_in_detector(data, obj_params)
         metrics["N_detector"] = (float(N_detector), 0.0)
+        N_detector_disc = objective_discernible_signal_in_detector(data, obj_params)
+        metrics["N_detector_disc"] = (float(N_detector_disc), 0.0)
 
     # filter metrics
     metrics = {k:v for k,v in metrics.items() if k in metric_names}
