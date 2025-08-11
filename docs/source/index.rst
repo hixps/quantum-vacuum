@@ -1,6 +1,11 @@
 quvac documentation
 ===================
 
+.. image:: ../../images/logo.jpg
+   :alt: Quvac logo
+   :width: 300px
+   :align: center
+
 Welcome to quvac documentation!
 
 Quvac (from quantum vacuum, pronounced as qu-ack 🐸) allows to calculate quantum 
@@ -15,11 +20,23 @@ was put forward in [2]_. Here we provide our implementation.
 
    installation
    usage
+   input_file
    tutorials
    implementation
+   for_developers
+
+
+Acknowledgements
+^^^^^^^^^^^^^^^^
+
+If you use this code and/or consider it useful, please cite our article.
+
+
+References
+^^^^^^^^^^^^^^^^
 
 .. [1] F. Karbstein, and R. Shaisultanov. "Stimulated photon emission from the vacuum." 
-   PRD 91.11 (2015): 113002.
+   PRD 91.11 (2015): 113002 `(article) <https://arxiv.org/abs/1412.6050>`_.
 
 .. [2] A. Blinne, et al. "All-optical signatures of quantum vacuum nonlinearities in 
-   generic laser fields." PRD 99.1 (2019): 016006.
+   generic laser fields." PRD 99.1 (2019): 016006 `(article) <https://arxiv.org/abs/1811.08895>`_.

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "quvac"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
   "numpy",
   "scipy",
@@ -20,7 +20,7 @@ authors = [
 ]
 maintainers = [
 ]
-description = "Calculate quantum vacuum signal from laser collisions."
+description = "Calculate quantum vacuum signal from the interaction of electromagnetic fields."
 readme = "README.md"
 license = {file = "LICENSE"}
 keywords = ["quantum", "vacuum", "qed", "maxwell", "electrodynamics"]
