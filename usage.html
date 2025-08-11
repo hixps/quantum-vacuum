@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Tutorials" href="tutorials.html" /><link rel="prev" title="Installation" href="installation.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Create input file" href="input_file.html" /><link rel="prev" title="Installation" href="installation.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>Usage - quvac 0.1.0 documentation</title>
+        <title>Usage - quvac 0.1.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
@@ -168,7 +168,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">quvac 0.1.0 documentation</div></a>
+      <a href="index.html"><div class="brand">quvac 0.1.1 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -180,7 +180,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -192,7 +192,7 @@
       <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
   
   
-  <span class="sidebar-brand-text">quvac 0.1.0 documentation</span>
+  <span class="sidebar-brand-text">quvac 0.1.1 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -203,8 +203,10 @@
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input_file.html">Create input file</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="implementation.html">Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="for_developers.html">For developers</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="autoapi/index.html">API Reference</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="autoapi/quvac/index.html">quvac</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of quvac</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="autoapi/quvac/analytic_scalings/index.html">quvac.analytic_scalings</a></li>
@@ -271,7 +273,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -279,15 +281,41 @@
         <article role="main" id="furo-main-content">
           <section id="usage">
 <h1>Usage<a class="headerlink" href="#usage" title="Link to this heading">¶</a></h1>
-<p>After creation of initialization file for quvac simulation it could be
-run with</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>simulation.py<span class="w"> </span>-i<span class="w"> </span>&lt;input&gt;.yaml<span class="w"> </span>-o<span class="w"> </span>&lt;output_dir&gt;
+<section id="command-line-interface">
+<h2>Command line interface<a class="headerlink" href="#command-line-interface" title="Link to this heading">¶</a></h2>
+<p>Quvac has its own small command line interface and after installation provides the following commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>quvac-simulation
+quvac-simulation-parallel
+quvac-gridscan
+quvac-optimization
 </pre></div>
 </div>
-<p>or in parallel version</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>simulation_parallel.py<span class="w"> </span>-i<span class="w"> </span>&lt;input&gt;.yaml<span class="w"> </span>-o<span class="w"> </span>&lt;output_dir&gt;
+<p>All functions have the same calling signature (<code class="docutils literal notranslate"><span class="pre">-h</span></code> for help):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>quvac-simulation<span class="w"> </span><span class="o">[</span>-h<span class="o">]</span><span class="w"> </span><span class="o">[</span>--input<span class="w"> </span>INPUT<span class="o">]</span><span class="w"> </span><span class="o">[</span>--output<span class="w"> </span>OUTPUT<span class="o">]</span><span class="w"> </span><span class="o">[</span>--wisdom<span class="w"> </span>WISDOM<span class="o">]</span>
 </pre></div>
 </div>
+<p>The difference is in the input file format (see Tutorials section for details):</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">quvac-simulation</span></code> requires field, grid and postprocessing parameters.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">quvac-simulation-parallel</span></code> additionally requires a section about parallelization parameters.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">quvac-gridscan</span></code> requires a section about gridscan parameters.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">quvac-optimization</span></code> requires a section about optimization parameters.</p></li>
+</ol>
+</section>
+<section id="launching-scripts-directly">
+<h2>Launching scripts directly<a class="headerlink" href="#launching-scripts-directly" title="Link to this heading">¶</a></h2>
+<p>Python scripts could be launched directly with (make sure to provide correct path to the script):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>src/quvac/simulation.py<span class="w"> </span>&lt;args&gt;
+python<span class="w"> </span>src/quvac/simulation_parallel.py<span class="w"> </span>&lt;args&gt;
+python<span class="w"> </span>src/quvac/cluster/gridscan.py<span class="w"> </span>&lt;args&gt;
+python<span class="w"> </span>src/quvac/cluster/optimization.py<span class="w"> </span>&lt;args&gt;
+</pre></div>
+</div>
+<p>Script arguments are the same as in the previous section:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>src/quvac/simulation.py<span class="w"> </span>-i<span class="w"> </span>&lt;input_yml_file&gt;<span class="w"> </span>-o<span class="w"> </span>&lt;output_dir&gt;
+</pre></div>
+</div>
+</section>
 </section>
 
         </article>
@@ -295,12 +323,12 @@ run with</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="tutorials.html">
+          <a class="next-page" href="input_file.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Tutorials</div>
+                <div class="title">Create input file</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -333,13 +361,33 @@ run with</p>
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Usage</a><ul>
+<li><a class="reference internal" href="#command-line-interface">Command line interface</a></li>
+<li><a class="reference internal" href="#launching-scripts-directly">Launching scripts directly</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=01f34227"></script>
+</div><script src="_static/documentation_options.js?v=a58bc63e"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/furo.js?v=5fa4622c"></script>

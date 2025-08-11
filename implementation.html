@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="API Reference" href="autoapi/index.html" /><link rel="prev" title="Tutorials" href="tutorials.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="For developers" href="for_developers.html" /><link rel="prev" title="Tutorials" href="tutorials.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>Implementation - quvac 0.1.0 documentation</title>
+        <title>Implementation - quvac 0.1.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
@@ -168,7 +168,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">quvac 0.1.0 documentation</div></a>
+      <a href="index.html"><div class="brand">quvac 0.1.1 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -192,7 +192,7 @@
       <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
   
   
-  <span class="sidebar-brand-text">quvac 0.1.0 documentation</span>
+  <span class="sidebar-brand-text">quvac 0.1.1 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -203,8 +203,10 @@
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input_file.html">Create input file</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="for_developers.html">For developers</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="autoapi/index.html">API Reference</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="autoapi/quvac/index.html">quvac</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of quvac</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="autoapi/quvac/analytic_scalings/index.html">quvac.analytic_scalings</a></li>
@@ -371,14 +373,14 @@ S_2 &amp;= -\text{prefactor}\: \cdot i \sqrt{k^0} \: \vec\epsilon_{2}(k) \cdot \
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{align*}
-\tilde{ \vec E}(t, \vec k) &amp;= \int d^3 x e^{-i \vec k \vec x} \vec E(t, \vec x)\\
-\tilde{ \vec E}(t, \vec x) &amp;= \int \frac{d^3 k}{(2\pi)^3} e^{i \vec k \vec x} \vec E(t, \vec k)
+\hat{ \vec E}(t, \vec k) &amp;= \int d^3 x e^{-i \vec k \vec x} \vec E(t, \vec x)\\
+{\vec E}(t, \vec x) &amp;= \int \frac{d^3 k}{(2\pi)^3} e^{i \vec k \vec x} \hat {\vec E}(t, \vec k)
 \end{align*}\end{split}\]</div>
 </div>
 <p>and define the vector potential to be spanned by two orthogonal polarization modes</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
-\[\tilde{ \vec A}(t, \vec k) = e^{-i k t} \sum_{p=1}^2 \vec e_p(\vec k) a_p(\vec k).\]</div>
+\[\hat{ \vec A}(t, \vec k) = e^{-i k t} \sum_{p=1}^2 \vec e_p(\vec k) a_p(\vec k).\]</div>
 </div>
 <p>Having complex model field <span class="math notranslate nohighlight">\(\vec E_m (t_0, \vec k)\)</span> (either by defining it in the spectral
 domain or Fourier transforming spatial fields), we extract spectral coefficients from them.</p>
@@ -389,22 +391,22 @@ we define orthogonal amplitudes by projection.</p>
 </div>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
-\[a_p(\vec k) = e^{i k t_0} \frac{1}{i k} \vec e_p(\vec k) \cdot \tilde{\vec E}_m(t_0, \vec k)\]</div>
+\[a_p(\vec k) = e^{i k t_0} \frac{1}{i k} \vec e_p(\vec k) \cdot \hat{\vec E}_m(t_0, \vec k)\]</div>
 </div>
 <p>From here, fields at other time steps are given by</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{align*}
-\tilde{\vec E}(t, \vec k) &amp;= e^{-i k t} i k [\vec e_1(\vec k) a_1(\vec k) + \vec e_2(\vec k) a_2(\vec k)], \\
-\tilde{\vec B}(t, \vec k) &amp;= e^{-i k t} i k [\vec e_2(\vec k) a_1(\vec k) - \vec e_1(\vec k) a_2(\vec k)].
+\hat{\vec E}(t, \vec k) &amp;= e^{-i k t} i k [\vec e_1(\vec k) a_1(\vec k) + \vec e_2(\vec k) a_2(\vec k)], \\
+\hat{\vec B}(t, \vec k) &amp;= e^{-i k t} i k [\vec e_2(\vec k) a_1(\vec k) - \vec e_1(\vec k) a_2(\vec k)].
 \end{align*}\end{split}\]</div>
 </div>
-<p>Fields at the spatial domain at timestep $t$ are obtained via inverse Fourier transform.</p>
+<p>Fields at the spatial domain at timestep <span class="math notranslate nohighlight">\(t\)</span> are obtained via inverse Fourier transform.</p>
 <p>From these complex fields, electromagnetic fields that are used in the vacuum emission amplitude are given by their real part:
 <span class="math notranslate nohighlight">\(\vec E(t, \vec x) \rightarrow Re\{E(t, \vec x)\}, \vec B(t, \vec x) \rightarrow Re\{B(t, \vec x)\}\)</span>.</p>
 <hr class="docutils" />
 <p><strong>Notes about numerical implementation</strong>:</p>
-<p>1. We slightly modify the formulas for <span class="math notranslate nohighlight">\(a_p(\vec k)\)</span> and <span class="math notranslate nohighlight">\(\tilde{\vec E}(t, \vec k)\)</span>
+<p>1. We slightly modify the formulas for <span class="math notranslate nohighlight">\(a_p(\vec k)\)</span> and <span class="math notranslate nohighlight">\(\hat{\vec E}(t, \vec k)\)</span>
 to avoid unnecessary computation (remove factors <span class="math notranslate nohighlight">\(i k\)</span> and combine two time exponents into one).</p>
 <ol class="arabic simple" start="2">
 <li><p>After the model field projection, its energy might change. We compensate this after the projection.</p></li>
@@ -435,12 +437,12 @@ in generic laser fields.” PRD 99.1 (2019): 016006.</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="autoapi/index.html">
+          <a class="next-page" href="for_developers.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">API Reference</div>
+                <div class="title">For developers</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -505,7 +507,7 @@ in generic laser fields.” PRD 99.1 (2019): 016006.</p>
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=01f34227"></script>
+</div><script src="_static/documentation_options.js?v=a58bc63e"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/furo.js?v=5fa4622c"></script>
