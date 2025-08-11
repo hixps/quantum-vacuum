@@ -99,7 +99,7 @@ def objective_signal_in_detector(data, obj_params):
 
 def objective_discernible_signal_in_detector(data, obj_params):
     """
-    Calculate the signal detected within a specified detector region.
+    Calculate the discernible signal detected within a specified detector region.
 
     Parameters
     ----------
