@@ -16,6 +16,7 @@ import os
 from pathlib import Path
 import time
 
+import jax
 import numexpr as ne
 import pyfftw
 
@@ -23,6 +24,7 @@ from quvac import config
 from quvac.field.external_field import ExternalField, ProbePumpField
 from quvac.grid import setup_grids
 from quvac.integrator.vacuum_emission import VacuumEmission
+from quvac.integrator.vacuum_emission_jax import VacuumEmissionJax
 from quvac.log import (
     get_grid_params,
     get_performance_stats,
@@ -153,6 +155,7 @@ def set_precision(precision):
     else:
         config.FDTYPE = "float64"
         config.CDTYPE = "complex128"
+        jax.config.update("jax_enable_x64", True)
 
 
 def run_simulation(ini_config, fields_params, files, timings, memory):
@@ -194,6 +197,7 @@ def run_simulation(ini_config, fields_params, files, timings, memory):
     ne.set_num_threads(nthreads)
     pyfftw_threads = perf_params.get("pyfftw_threads", nthreads)
     use_wisdom = perf_params.get("use_wisdom", True)
+    use_jax = perf_params.get("use_jax", False)
 
     # Check if it's a test run to plan resources
     test_run = perf_params.get("test_run", False)
@@ -244,7 +248,11 @@ def run_simulation(ini_config, fields_params, files, timings, memory):
             f"    Pump  idx: {probe_pump['pump']}"
         )
     _logger.info(log_message)
-    vacem = VacuumEmission(field, grid_xyz, nthreads=pyfftw_threads, channels=channels)
+    if use_jax:
+        jax.config.update('jax_num_cpu_devices', nthreads)
+        vacem = VacuumEmissionJax(field, grid_xyz, nthreads=pyfftw_threads, channels=channels)
+    else:
+        vacem = VacuumEmission(field, grid_xyz, nthreads=pyfftw_threads, channels=channels)
     timings['vacem_setup'] = time.perf_counter()
     timings['integral'] = vacem.calculate_amplitudes(grid_t, 
                                                      save_path=files['amplitudes'])
