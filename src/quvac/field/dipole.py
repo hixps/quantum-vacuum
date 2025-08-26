@@ -40,6 +40,8 @@ class DipoleAnalytic(ExplicitField):
                 Pulse wavelength.
             - tau : float
                 Duration.
+            - phase0 : float
+                Phase delay at focus.
             - W : float, optional
                 Energy.
             - envelope : str
@@ -61,6 +63,7 @@ class DipoleAnalytic(ExplicitField):
         self.beta = getattr(self, "beta", 0)
         self.envelope = getattr(self, "envelope", "plane")
         self.dipole_type = getattr(self, "dipole_type", "electric")
+        self.phase0 = getattr(self, "phase0", 0)
 
         # Define additional field variables
         self.x0, self.y0, self.z0 = self.focus_x
@@ -85,6 +88,7 @@ class DipoleAnalytic(ExplicitField):
                         "c": c,
                         "k": self.k,
                         "omega": self.omega,
+                        "phase0": self.phase0,
                         "d0": self.d0,
                         "nx": self.nx,
                         "ny": self.ny,
@@ -98,13 +102,14 @@ class DipoleAnalytic(ExplicitField):
         Defines envelope expressions.
         """
         if self.envelope == "plane":
-            self.g_expr = "1j*exp(-1j*omega*t)"
-            self.gdot_expr = 'omega*exp(-1j*omega*t)'
-            self.gdotdot_expr = "-1j*omega**2*exp(-1j*omega*t)"
+            env = "1j*exp(-1j*omega*t - 1j*phase0)"
+            self.g_expr = env
+            self.gdot_expr = f"-1j*omega*{env}"
+            self.gdotdot_expr = f"-omega**2*{env}"
             self.E_R0 = "omega**3"
         elif self.envelope == "gauss":
             a2 = "(1/(tau/2)**2)"
-            env = f"-1j*exp(-t**2*{a2} - 1j*omega*t)"
+            env = f"-1j*exp(-t**2*{a2} - 1j*omega*t - 1j*phase0)"
             self.g_expr = env
             self.gdot_expr = f'{env} * (-2*t*{a2} - 1j*omega)'
             self.gdotdot_expr = (f'{env} * (4*t**2*{a2}**2 - 2*{a2} - omega**2 + '
