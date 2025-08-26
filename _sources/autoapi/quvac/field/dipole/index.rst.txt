@@ -59,6 +59,8 @@ Module Contents
                                 Pulse wavelength.
                             - tau : float
                                 Duration.
+                            - phase0 : float
+                                Phase delay at focus.
                             - W : float, optional
                                 Energy.
                             - envelope : str

@@ -319,6 +319,8 @@
 <span class="sd">                Pulse wavelength.</span>
 <span class="sd">            - tau : float</span>
 <span class="sd">                Duration.</span>
+<span class="sd">            - phase0 : float</span>
+<span class="sd">                Phase delay at focus.</span>
 <span class="sd">            - W : float, optional</span>
 <span class="sd">                Energy.</span>
 <span class="sd">            - envelope : str</span>
@@ -340,6 +342,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;beta&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">envelope</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;envelope&quot;</span><span class="p">,</span> <span class="s2">&quot;plane&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dipole_type</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;dipole_type&quot;</span><span class="p">,</span> <span class="s2">&quot;electric&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phase0</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;phase0&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
         <span class="c1"># Define additional field variables</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">focus_x</span>
@@ -364,6 +367,7 @@
                         <span class="s2">&quot;c&quot;</span><span class="p">:</span> <span class="n">c</span><span class="p">,</span>
                         <span class="s2">&quot;k&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span>
                         <span class="s2">&quot;omega&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">omega</span><span class="p">,</span>
+                        <span class="s2">&quot;phase0&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase0</span><span class="p">,</span>
                         <span class="s2">&quot;d0&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d0</span><span class="p">,</span>
                         <span class="s2">&quot;nx&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="p">,</span>
                         <span class="s2">&quot;ny&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ny</span><span class="p">,</span>
@@ -379,13 +383,14 @@
 <span class="sd">        Defines envelope expressions.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">envelope</span> <span class="o">==</span> <span class="s2">&quot;plane&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">g_expr</span> <span class="o">=</span> <span class="s2">&quot;1j*exp(-1j*omega*t)&quot;</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">gdot_expr</span> <span class="o">=</span> <span class="s1">&#39;omega*exp(-1j*omega*t)&#39;</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">gdotdot_expr</span> <span class="o">=</span> <span class="s2">&quot;-1j*omega**2*exp(-1j*omega*t)&quot;</span>
+            <span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;1j*exp(-1j*omega*t - 1j*phase0)&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">g_expr</span> <span class="o">=</span> <span class="n">env</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gdot_expr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;-1j*omega*</span><span class="si">{</span><span class="n">env</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gdotdot_expr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;-omega**2*</span><span class="si">{</span><span class="n">env</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">E_R0</span> <span class="o">=</span> <span class="s2">&quot;omega**3&quot;</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">envelope</span> <span class="o">==</span> <span class="s2">&quot;gauss&quot;</span><span class="p">:</span>
             <span class="n">a2</span> <span class="o">=</span> <span class="s2">&quot;(1/(tau/2)**2)&quot;</span>
-            <span class="n">env</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;-1j*exp(-t**2*</span><span class="si">{</span><span class="n">a2</span><span class="si">}</span><span class="s2"> - 1j*omega*t)&quot;</span>
+            <span class="n">env</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;-1j*exp(-t**2*</span><span class="si">{</span><span class="n">a2</span><span class="si">}</span><span class="s2"> - 1j*omega*t - 1j*phase0)&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">g_expr</span> <span class="o">=</span> <span class="n">env</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">gdot_expr</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">env</span><span class="si">}</span><span class="s1"> * (-2*t*</span><span class="si">{</span><span class="n">a2</span><span class="si">}</span><span class="s1"> - 1j*omega)&#39;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">gdotdot_expr</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">env</span><span class="si">}</span><span class="s1"> * (4*t**2*</span><span class="si">{</span><span class="n">a2</span><span class="si">}</span><span class="s1">**2 - 2*</span><span class="si">{</span><span class="n">a2</span><span class="si">}</span><span class="s1"> - omega**2 + &#39;</span>
