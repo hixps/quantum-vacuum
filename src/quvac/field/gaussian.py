@@ -212,13 +212,26 @@ class GaussianAnalytic(ExplicitField):
         else:
             raise NotImplementedError(f"`{self.polarization}` polarization is not "
                                       "supported")
+        
+    def get_plane_wave_phase(self, t):
+        alpha_chirp = getattr(self, "alpha_chirp", 0)
+        plane_phase = "(t-t0-z/c)"
+        if alpha_chirp != 0:
+            psi_plane_expr = f"({plane_phase}*(omega + alpha_chirp*{plane_phase}/tau))"
+        else:
+            psi_plane_expr = f"(omega*{plane_phase})"
+        psi_plane = ne.evaluate(psi_plane_expr, global_dict=self.__dict__,
+                                local_dict={'c': c, 't': t, 'omega': self.omega,
+                                            'alpha_chirp': alpha_chirp})
+        return psi_plane
 
     def calculate_field(self, t, E_out=None, B_out=None, mode="real"):
         """
         Calculates the electric and magnetic fields at a given time step.
         """
         k = 2.0 * pi / self.lam # noqa: F841
-        self.psi_plane = ne.evaluate("(omega*(t-t0) - k*z)", global_dict=self.__dict__)
+        # self.psi_plane = ne.evaluate("(omega*(t-t0) - k*z)", global_dict=self.__dict__)
+        self.psi_plane = self.get_plane_wave_phase(t)
         self.phase = "(phase_no_t + psi_plane)"
 
         Et = ne.evaluate(
