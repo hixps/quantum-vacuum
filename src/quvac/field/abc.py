@@ -343,7 +343,8 @@ class SpectralField(Field):
             )
             setattr(self, ax, new_ax)
         self.kabs_rotated = ne.evaluate(
-            "sqrt(kx_rotated**2 + ky_rotated**2 + kz_rotated**2)"
+            "sqrt(kx_rotated**2 + ky_rotated**2 + kz_rotated**2)",
+            global_dict=self.__dict__
         )
 
     def _check_energy_kspace(self):
