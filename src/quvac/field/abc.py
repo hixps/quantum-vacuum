@@ -16,6 +16,7 @@ from scipy.spatial.transform import Rotation
 
 from quvac import config
 from quvac.field.utils import get_field_energy, get_field_energy_kspace
+from quvac.grid import GridXYZ
 
 ANGLE_KEYS = "theta phi beta phase0".split()
 _logger = logging.getLogger("simulation")
@@ -328,6 +329,18 @@ class SpectralField(Field):
 
     def __init__(self, field_params, grid):
         super().__init__(field_params, grid)
+
+    def rotate_kgrid(self, rotate_grid=True):
+        """
+        Rotates the coordinate grid.
+
+        Parameters
+        ----------
+        rotate_grid : bool, optional
+            Whether to rotate the grid coordinates. Default is True.
+        """
+        self.rotate_coordinates()
+        self.grid_rotated = GridXYZ((self.x,self.y,self.z))
 
     def _check_energy_kspace(self):
         # Fix energy
