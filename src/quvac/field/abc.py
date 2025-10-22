@@ -347,7 +347,7 @@ class SpectralField(Field):
             global_dict=self.__dict__
         )
     
-    def rotate_vector_potential_back(self, E_out, B_out, mode):
+    def rotate_vector_potential_back(self):
         """
         Rotate the fields back to the original coordinate frame.
 
