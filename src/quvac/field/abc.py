@@ -342,7 +342,8 @@ class SpectralField(Field):
             new_ax = ne.evaluate(
                 "mx*kx_ + my*ky_ + mz*kz_", global_dict=self.__dict__
             )
-            setattr(self, ax, np.fft.ifftshift(new_ax))
+            setattr(self, ax, new_ax)
+            # setattr(self, ax, np.fft.ifftshift(new_ax))
         self.kabs_rotated = ne.evaluate(
             "sqrt(kx_rotated**2 + ky_rotated**2 + kz_rotated**2)",
             global_dict=self.__dict__
