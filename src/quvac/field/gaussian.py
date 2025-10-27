@@ -326,8 +326,11 @@ class GaussianSpectral(SpectralField):
         self.vector_potential = ne.evaluate(self.vector_potential_expr,
                                             local_dict=self.vector_potential_dict)
         # self.vector_potential = np.fft.ifftshift(self.vector_potential)
+        self.vector_potential *= self.dft_factor
         
         A = self.rotate_vector_potential_back()
+        x0, y0, z0 = [ax[0] for ax in self.grid]
+        # dft_factor = np.exp(1j*(kx*x0 + ky*y0 +kz*z0))
         self.Ax, self.Ay, self.Az = [np.fft.ifftshift(Ai) for Ai in A]
         # self.Ax, self.Ay, self.Az = self.rotate_vector_potential_back()
 
@@ -350,6 +353,9 @@ class GaussianSpectral(SpectralField):
             "omega": self.omega,
             "alpha": self.alpha_chirp,
         }
+        x0, y0, z0 = [ax[0] for ax in self.grid]
+        self.dft_factor = np.exp(1j*(self.kx_rotated*x0 + self.ky_rotated*y0 
+                                + self.kz_rotated*z0))
     
     def calculate_field(self, t, E_out=None, B_out=None, mode="real"):
         """
@@ -422,8 +428,8 @@ class GaussianSpectralDirect(SpectralField):
         self.get_vector_potential()
 
     def get_vector_potential(self):
-        # kx, ky, kz = [np.fft.fftshift(k) for k in self.kmeshgrid]
-        kx, ky, kz = self.kmeshgrid
+        kx, ky, kz = [np.fft.fftshift(k) for k in self.kmeshgrid]
+        # kx, ky, kz = self.kmeshgrid
         k0x, k0y, k0z = get_ek(self.theta, self.phi)
         klong = k0x*kx + k0y*ky + k0z*kz
         kperpx, kperpy, kperpz = (kx - klong*k0x, ky - klong*k0y, kz - klong*k0z)
