@@ -228,7 +228,7 @@ class GaussianAnalytic(ExplicitField):
         alpha_chirp = getattr(self, "alpha_chirp", 0)
         plane_phase = "(t-t0-z/c)"
         if alpha_chirp != 0:
-            psi_plane_expr = f"({plane_phase}*(omega + alpha_chirp*{plane_phase}/tau))"
+            psi_plane_expr = f"({plane_phase}*omega*(1 + alpha_chirp*{plane_phase}/tau))"
         else:
             psi_plane_expr = f"(omega*{plane_phase})"
         psi_plane = ne.evaluate(psi_plane_expr, global_dict=self.__dict__,
