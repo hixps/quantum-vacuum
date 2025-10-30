@@ -226,26 +226,33 @@ class GaussianAnalytic(ExplicitField):
         
     def get_plane_wave_phase(self, t):
         alpha_chirp = getattr(self, "alpha_chirp", 0)
-        plane_phase = "(t-t0-z/c)"
+        plane_phase_expr = "(t-t0-z/c)"
+        phase_dict = {
+            'c': c,
+            't': t, 
+            'omega': self.omega,
+            'alpha_chirp': alpha_chirp,
+        }
+        temporal_phase = ne.evaluate(f"(omega*{plane_phase_expr})", global_dict=self.__dict__,
+                                          local_dict=phase_dict)
         if alpha_chirp != 0:
-            psi_plane_expr = f"({plane_phase}*omega*(1 + alpha_chirp*{plane_phase}/tau))"
+            psi_plane_expr = f"({plane_phase_expr}*omega*(1 + alpha_chirp*{plane_phase_expr}/(tau/2)))"
+            psi_plane = ne.evaluate(psi_plane_expr, global_dict=self.__dict__,
+                                    local_dict=phase_dict)
         else:
-            psi_plane_expr = f"(omega*{plane_phase})"
-        psi_plane = ne.evaluate(psi_plane_expr, global_dict=self.__dict__,
-                                local_dict={'c': c, 't': t, 'omega': self.omega,
-                                            'alpha_chirp': alpha_chirp})
-        return psi_plane
+            psi_plane = temporal_phase
+        return temporal_phase, psi_plane
 
     def calculate_field(self, t, E_out=None, B_out=None, mode="real"):
         """
         Calculates the electric and magnetic fields at a given time step.
         """
         k = 2.0 * pi / self.lam # noqa: F841
-        self.psi_plane = self.get_plane_wave_phase(t)
+        self.temporal_phase, self.psi_plane = self.get_plane_wave_phase(t)
         self.phase = "(phase_no_t + psi_plane)"
 
         Et = ne.evaluate(
-            f"E * exp(-(2.*psi_plane/(omega*tau))**2) * exp(-1.j*{self.phase})",
+            f"E * exp(-(2.*temporal_phase/(omega*tau))**2) * exp(-1.j*{self.phase})",
             global_dict=self.__dict__,
         )
 
