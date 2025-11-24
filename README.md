@@ -17,20 +17,26 @@ Documentation is available [here](https://maxbalrog.github.io/quantum-vacuum/).
 Is is recommended to create a separate Python environment for this package, e.g.
 
 ```bash
-    micromamba create -n quvac python=3.12
+micromamba create -n quvac python=3.12
 ```
 
 After cloning the git repository it could be simply installed with
 
 ```bash
-    pip install quantum-vacuum
+pip install quvac/
+```
+
+or after you enter the repository
+
+```bash
+pip install .
 ```
 
 After successfull installation run ``pytest`` to make sure the installation was
 successfull (it takes some time).
 
 ```bash
-    pytest
+pytest
 ```
 
 ## Contribution
